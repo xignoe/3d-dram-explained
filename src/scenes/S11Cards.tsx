@@ -84,7 +84,7 @@ function Ladder({ step }: { step: number }) {
         {Array.from({ length: 5 }, (_, i) => (
           <rect key={i} x={380} y={48 + i * 26} width={110} height={20} fill={i === 2 ? P.hbmTint : P.board} stroke={P.ink} strokeWidth={0.9} />
         ))}
-        <text x={435} y={110} textAnchor="middle" fontSize="9" fill={P.ink}>switch tray</text>
+        <text x={435} y={113} textAnchor="middle" fontSize="9" fill={P.ink}>switch tray</text>
         {[0, 1, 3, 4].map((i) => <text key={i} x={435} y={62 + i * 26} textAnchor="middle" fontSize="9" fill={P.ink2}>node of cards</text>)}
         {[0, 1, 3, 4].map((i) => <path key={i} d={`M492 ${58 + i * 26} C 520 ${58 + i * 26}, 520 106, 492 106`} fill="none" stroke={P.hbm} strokeWidth={1.4} />)}
         <text x={435} y={214} textAnchor="middle" fontSize="10" fill={P.ink3}>{net.connects}</text>
@@ -148,8 +148,8 @@ export function S11Cards() {
         <p key="2">HBM needs even fewer cards, but each one reads memory at {MEMORY.hbm.bandwidthTBs} TB/s, compared with {MEMORY.dram3d.bandwidthTBs} TB/s for Raptor. Capacity determines how many cards a model needs, and bandwidth determines how quickly each of them works.</p>,
         <p key="3">The number of cards matters because the cards working on one model constantly exchange partial results, in group operations called <Term k="collective">collectives</Term>. Raptor’s connections form a hierarchy: an on-chip network inside each chiplet, die-to-die links inside each module, and PCIe Gen 7 or Ethernet between modules and cards.</p>,
         <>
-          <p key="4">With fewer cards, each collective involves fewer participants and less traffic has to cross the slowest links, so performance depends less on the speed of the network.</p>
-          <Note>Table II lists Llama-3.1 70B on a single 3D-DRAM card with {LF.dram3dMemGB} GB in total. That seems inconsistent with the roughly {LF.weightsGB} GB of 8-bit weights described in Sec I, and with the mention of TP = {LF.statedTP} on 3D-DRAM in Sec VI-D. We show Table II as printed.</Note>
+          <p key="4">With fewer cards, each collective involves fewer participants and less traffic has to cross the slowest links, so Raptor depends less on the network than the SRAM design does. HBM, split across even fewer cards, is the least sensitive of the three. Raptor sits in between, and like SRAM it slows down sharply when network bandwidth is very low.</p>
+          <Note>Table II lists Llama-3.1 70B on a single 3D-DRAM card with {LF.dram3dMemGB} GB in total. That seems inconsistent with the roughly {LF.weightsGB} GB of 8-bit weights described in Sec I, and with the mention of TP = {LF.statedTP} on 3D-DRAM in Sec VI-D. We may be misreading the table, so we show it as printed.</Note>
         </>,
       ]}
       description={(s) => s.step >= 3

@@ -232,20 +232,38 @@ function labelsFor(level: number): Label[] {
     default: return [
       { at: [B0.x, B0.y + B0.h * 0.45], text: `${fmt(H.bank.rows)} rows`, anchor: 'end', dx: -10 },
       { at: [B0.x + B0.w / 2, B0.y], text: `${H.bank.columns} columns`, dy: -10 },
-      { at: [B0.x + B0.w, B0.y + B0.h * 0.3], text: `one column read: ${H.bank.bytesPerColumnRead} bytes`, anchor: 'start', dx: 10 },
+      { at: [B0.x + B0.w, B0.y + B0.h * 0.3], text: `column read: ${H.bank.bytesPerColumnRead} B`, anchor: 'start', dx: 10 },
       { at: [B0.x + B0.w, B0.y + B0.h * 0.96], text: 'row buffer', anchor: 'start', dx: 10 },
     ];
   }
 }
 
+/** The figure box in CSS pixels, so the drawing fills it and labels render at their true size. */
+function useBoxSize(ref: React.RefObject<HTMLDivElement | null>) {
+  const [size, setSize] = useState({ w: 600, h: 420 });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => {
+      const { width, height } = e.contentRect;
+      if (width > 0 && height > 0) setSize({ w: Math.round(width), h: Math.round(height) });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+  return size;
+}
+
 function ZoomFigure({ level, reduced }: { level: number; reduced: boolean }) {
   const narrow = !useDesktop();
-  const VW = narrow ? 380 : 600, VH = 420;
+  const box = useRef<HTMLDivElement>(null);
+  const { w: VW, h: VH } = useBoxSize(box);
   const { cam, moving } = useCamera(level, VW, VH, reduced);
   const toScreen = (x: number, y: number) => [(x - cam.cx) * cam.s + VW / 2, (y - cam.cy) * cam.s + VH / 2];
   const labels = useMemo(() => labelsFor(level), [level]);
   return (
-    <svg viewBox={`0 0 ${VW} ${VH}`} className="h-full w-full" aria-hidden>
+    <div ref={box} className="absolute inset-0">
+    <svg viewBox={`0 0 ${VW} ${VH}`} width={VW} height={VH} className="block" aria-hidden>
       <defs><clipPath id="zoom-clip"><rect width={VW} height={VH} /></clipPath></defs>
       <g clipPath="url(#zoom-clip)">
         <g transform={`translate(${VW / 2} ${VH / 2}) scale(${cam.s}) translate(${-cam.cx} ${-cam.cy})`}>
@@ -261,6 +279,7 @@ function ZoomFigure({ level, reduced }: { level: number; reduced: boolean }) {
         })}
       </g>
     </svg>
+    </div>
   );
 }
 
@@ -298,7 +317,7 @@ export function S05Zoom() {
       steps={[
         <p key="0">Before getting to the problems, it helps to see how the chip is organized. A Raptor accelerator card carries <strong className="num">{H.card.mcmsMin} to {H.card.mcmsMax}</strong> <Term k="mcm">multi-chip modules</Term>, or MCMs.</p>,
         <p key="1">Each MCM contains <strong className="num">{H.mcm.chiplets}</strong> <Term k="chiplet">chiplets</Term> and is designed for about <strong className="num">{H.mcm.powerW} W</strong>. Around them are <strong className="num">{H.mcm.lpddrDevices}</strong> conventional {H.mcm.lpddrType} memory chips, which add <strong className="num">{H.mcm.lpddrGB} GB</strong> of slower memory for data that doesn’t fit in the stacked DRAM.</p>,
-        <p key="2">A chiplet is the stack from the previous section: a logic die bonded to a DRAM die. The DRAM die is divided into <strong className="num">{fmt(H.chiplet.banks)}</strong> <Term k="bank">banks</Term>, which are grouped into <strong className="num">{H.chiplet.channels}</strong> independent <Term k="channel">channels</Term>.</p>,
+        <p key="2">A chiplet is the stack from the previous section: a logic die bonded to a DRAM die. The DRAM die is divided into <strong className="num">{fmt(H.chiplet.banks)}</strong> <Term k="bank">banks</Term>. Most of them are grouped into <strong className="num">{H.chiplet.channels}</strong> independent <Term k="channel">channels</Term>, and the rest are held back as spares.</p>,
         <p key="3">The logic die is divided into <strong className="num">{H.chiplet.gangs}</strong> gangs. A gang groups neighboring slices so that they can work together on a larger part of the model without involving the rest of the chip.</p>,
         <p key="4">Each gang contains <strong className="num">{H.gang.slices}</strong> slices, which the paper treats as the basic unit of the design. A slice has a <strong className="num">{H.slice.teRows}×{H.slice.teCols}</strong> array of tensor engines for matrix arithmetic, a SIMD core for other operations, and <strong className="num">{H.slice.channels}</strong> DRAM channels of its own directly underneath. The channels are independent, so maintenance work on one of them doesn’t hold up the others.</p>,
         <p key="5">At the bottom of the hierarchy is a single bank, a grid of <strong className="num">{fmt(H.bank.rows)}</strong> rows by <strong className="num">{H.bank.columns}</strong> columns. Reading one column returns <strong className="num">{H.bank.bytesPerColumnRead} bytes</strong>. These dimensions come up again in each of the problems that follow.</p>,

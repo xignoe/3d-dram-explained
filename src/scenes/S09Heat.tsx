@@ -21,6 +21,8 @@ function ChargeBank({ interval }: { interval: number }) {
       <text x={0} y={14} fontSize="11" fill={P.ink2}>one bank’s rows</text>
       <text x={0} y={30} fontSize="10" fill={P.ink3}>charge fades,</text>
       <text x={0} y={43} fontSize="10" fill={P.ink3}>refresh restores it</text>
+      <line x1={0} x2={16} y1={60} y2={60} stroke={P.sram} strokeWidth={2} />
+      <text x={21} y={63} fontSize="10" fill={P.sram}>refresh</text>
       <rect x={x0 - 4} y={4} width={W - x0} height={rows * rowH + 8} fill={P.paper} stroke={P.ink} strokeWidth={1} />
       {Array.from({ length: rows }, (_, r) => (
         <g key={`${r}-${interval}`}>
@@ -31,8 +33,7 @@ function ChargeBank({ interval }: { interval: number }) {
         </g>
       ))}
       <g key={interval} style={{ animation: `sweep ${dur}s linear infinite`, ['--sweep-dist' as string]: `${rows * rowH}px` }}>
-        <line x1={x0 - 10} x2={W - 2} y1={8} y2={8} stroke={P.sram} strokeWidth={2} />
-        <text x={x0 - 14} y={11} textAnchor="end" fontSize="9" fill={P.sram}>refresh</text>
+        <line x1={x0 - 4} x2={W - 6} y1={8} y2={8} stroke={P.sram} strokeWidth={2} />
       </g>
     </svg>
   );
@@ -57,7 +58,7 @@ function RefreshPanel({ step }: { step: number }) {
       </label>
       <ChargeBank interval={interval} />
       <svg viewBox="0 0 400 150" className="w-full" aria-hidden>
-        <text x="12" y="16" fontSize="12" fill="var(--color-dram3d)">Raptor: refresh every <tspan className="svg-num" fontSize="14">{interval} ms</tspan></text>
+        <text x="12" y="16" fontSize="12" fill="var(--color-dram3d)">{hot ? 'Required above ' + R.hotThresholdC + ' °C: every ' : 'Cooler reference point: every '}<tspan className="svg-num" fontSize="14">{interval} ms</tspan></text>
         <line x1={X(0)} x2={X(span)} y1="44" y2="44" stroke="var(--color-line)" />
         {ticks(interval).map((t) => <rect key={t} x={X(t) - 2} y="30" width="4" height="28" rx="1" fill="var(--color-dram3d)" className="fade" />)}
         <text x="12" y="88" fontSize="12" fill="var(--color-hbm)">Typical HBM: every <tspan className="svg-num" fontSize="14">{R.hbmNominalMs} ms</tspan></text>
@@ -291,22 +292,25 @@ export function S09Heat() {
       eyebrow={<ProblemChips active={3} />}
       title="Keeping a hot stack reliable"
       steps={[
-        <p key="0">DRAM stores each bit as a small electric charge that slowly leaks away, so every row has to be rewritten, or <Term k="refresh">refreshed</Term>, on a regular schedule. Below {R.hotThresholdC} °C, Raptor refreshes every <strong className="num">{R.coolIntervalMs} ms</strong>.</p>,
-        <p key="1">Because the DRAM is pressed against the logic, the junction can reach <strong className="num">{R.maxJunctionC} °C</strong>, and charge leaks faster when it’s hot. Above {R.hotThresholdC} °C, Raptor refreshes every <strong className="num">{R.hotIntervalMs} ms</strong>, {R.moreFrequentX}× as often as the {R.hbmNominalMs} ms interval that is typical for HBM. The temperature slider in the figure shows the change.</p>,
+        <p key="0">DRAM stores each bit as a small electric charge that slowly leaks away, so every row has to be rewritten, or <Term k="refresh">refreshed</Term>, on a regular schedule. HBM devices nominally do this every <strong className="num">{R.hbmNominalMs} ms</strong>.</p>,
+        <>
+          <p key="1">Because the DRAM is pressed against the logic, the interface between them can reach <strong className="num">{R.maxJunctionC} °C</strong>, and charge leaks faster when it’s hot. Above {R.hotThresholdC} °C, the paper says, the DRAM needs a refresh every <strong className="num">{R.hotIntervalMs} ms</strong> to hold its data, {R.moreFrequentX}× as often as HBM’s nominal interval.</p>
+          <Note>The paper measures the cost of moving from a {R.coolIntervalMs} ms interval to {R.hotIntervalMs} ms, which the slider uses for cooler temperatures. Its performance results assume an even shorter {R.evalIntervalMs} ms interval.</Note>
+        </>,
         <>
           <p key="2">Refreshing that often would usually be expensive, but Raptor’s banks are small. Each one has <strong className="num">{fmt(R.rowsPerBank)}</strong> rows, {R.fewerRowsLabel} fewer than a conventional DRAM bank, so a full refresh pass finishes quickly.</p>
-          <Note>Each bank also stores error-correcting codes ({ECC.code}) in its last {ECC.columns} columns, and the chip scrubs memory in the background to catch errors early.</Note>
+          <p>Each bank also protects its data with error-correcting codes. The last {ECC.columns} columns hold a pair of interleaved {ECC.code} codewords, stored alongside the stream-flipping flag bits. On a read, the controller fetches the codes and flags first, then the data, correcting errors before the chunk reaches the tensor engine. Background scrubbing catches errors before they pile up.</p>
         </>,
-        <p key="3">Measurements on the chip confirm this. Refreshing every {R.hotIntervalMs} ms costs only <strong className="num">{TABLE1.find((r) => r.intervalMs === R.hotIntervalMs)?.overheadPct}%</strong> of the bandwidth.</p>,
-        <p key="4">Frequent refresh also protects against <strong>rowhammer</strong>, an attack that flips bits by activating one row over and over. With this chip’s timing, an attacker needs about {RH.attackMs} ms of continuous activations to reach the threshold, but every row is refreshed every {RH.refreshMs} ms, which resets the count before it gets there.</p>,
-        <p key="5">Heat leaves the stack upward, through the logic die, the lid and the heatsink. Since the DRAM is underneath the logic, it runs about <strong className="num">{TH.dramCoolerC} °C cooler</strong> than the logic. In HBM the arrangement is reversed, with the memory sitting on top of hot logic. The stacking itself adds only about {TH.dieStackShareRthetaPct}% to the thermal resistance.</p>,
-        <p key="6">Each chiplet draws about {TH.chipletW} W. With ordinary air cooling, only {air.maxChipletW} W per chiplet stays under the {TH.limitC} °C limit, so the paper models an optimized heatsink that keeps the peak near <strong className="num">{opt.peakAt106C} °C</strong>, with headroom up to about {opt.headroomW} W. Liquid cooling would keep it under {liquid.belowC} °C.</p>,
+        <p key="3">Measurements on the chip confirm this. Refreshing every {R.hotIntervalMs} ms costs only <strong className="num">{TABLE1.find((r) => r.intervalMs === R.hotIntervalMs)?.overheadPct}%</strong> of the bandwidth, and even the {R.evalIntervalMs} ms interval used in the performance results costs <strong className="num">{TABLE1.find((r) => r.intervalMs === R.evalIntervalMs)?.overheadPct}%</strong>.</p>,
+        <p key="4">Frequent refresh also protects against <strong>rowhammer</strong>, an attack that flips bits by activating one row over and over. With this chip’s timing, an attacker needs about {RH.attackMs} ms of continuous activations to reach the threshold. At a {RH.refreshMs} ms refresh interval, every row is refreshed before its neighbors can get there, so the attack is shut out by the refresh schedule itself.</p>,
+        <p key="5">Heat leaves the stack upward, through the logic die, the lid and the heatsink. Since the DRAM is underneath the logic, it runs about <strong className="num">{TH.dramCoolerC} °C cooler</strong> than the logic. In HBM the arrangement is reversed, with the memory sitting on top of hot logic. Most of the resistance to heat flow, about {TH.coolingShareRthetaPct}%, is in the cooling solution; the whole die stack, DRAM included, adds only about {TH.dieStackShareRthetaPct}%.</p>,
+        <p key="6">Each chiplet draws about {TH.chipletW} W. With baseline air cooling and {air.ambientC} °C intake air, only {air.maxChipletW} W per chiplet stays under the {TH.limitC} °C limit. The paper’s optimized heatsink, with {opt.ambientC} °C air, keeps the peak near <strong className="num">{opt.peakAt106C} °C</strong>, with headroom up to about {opt.headroomW} W. Liquid cooling would keep it under {liquid.belowC} °C.</p>,
       ]}
       description={(s) => [
-        `Refresh timeline at a cool temperature: refresh every ${R.coolIntervalMs} ms, compared with HBM's ${R.hbmNominalMs} ms. A temperature slider is available.`,
+        `Refresh timeline below ${R.hotThresholdC} °C, using the paper's ${R.coolIntervalMs} ms comparison point, against HBM's nominal ${R.hbmNominalMs} ms. A temperature slider is available.`,
         `Refresh timeline above ${R.hotThresholdC} °C: refresh every ${R.hotIntervalMs} ms, ${R.moreFrequentX} times more often than HBM's ${R.hbmNominalMs} ms.`,
         `Bar comparison: a Raptor bank has ${R.rowsPerBank} rows; conventional banks have ${R.fewerRowsLabel} more.`,
-        `Measured bandwidth lost to refresh: ${TABLE1.map((r) => `${r.overheadPct}% at ${r.intervalMs} ms`).join(', ')}.`,
+        `Measured bandwidth lost to refresh at ${TABLE1_FREQ_MHZ} MHz: ${TABLE1.map((r) => `${r.overheadPct}% at ${r.intervalMs} ms`).join(', ')}.`,
         `Race: without refresh, an attacker reaches ${RH.threshold} activations in ${RH.attackMs} ms. With a refresh every ${RH.refreshMs} ms the count resets and never reaches the threshold.`,
         `Modeled cross-section: heat flows up from the logic die through the lid to the heatsink; the DRAM below is about ${TH.dramCoolerC} °C cooler.`,
         `Modeled cooling comparison at ${TH.chipletW} W per chiplet: air cooling fits only ${air.maxChipletW} W; optimized heatsink about ${opt.peakAt106C} °C with headroom to ${opt.headroomW} W; liquid cooling under ${liquid.belowC} °C.`,
@@ -319,7 +323,7 @@ export function S09Heat() {
         { evidence: 'measured' as const, caption: <>Measured bandwidth lost to refresh at three refresh intervals, and the bandwidth left over. Source: Table I.</> },
         { caption: <>A rowhammer attack played out with the chip’s timings. The threshold of {fmt(RH.threshold)} activations {RH.thresholdNote}. The peak count per refresh window is our arithmetic. Source: Sec V-B.</> },
         { evidence: 'modeled' as const, caption: <>Cross-section of the stack, not to scale. Heat flows up to the heatsink; the share of thermal resistance comes from the paper’s analytical model. Source: Sec V-C, Fig. 12.</> },
-        { evidence: 'modeled' as const, caption: <>From the paper’s analytical thermal model, not a silicon measurement. The dashed line marks Raptor’s operating point. Source: Sec V-C, Fig. 12.</> },
+        { evidence: 'modeled' as const, caption: <>From the paper’s analytical thermal model, not a silicon measurement. Each thermometer shows the peak temperature at Raptor’s operating point of {TH.chipletW} W per chiplet; the dashed line is the {TH.limitC} °C limit. Source: Sec V-C, Fig. 12.</> },
       ][Math.min(s.step, 6)]}
     />
   );

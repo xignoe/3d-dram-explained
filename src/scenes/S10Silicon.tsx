@@ -82,9 +82,9 @@ export function S10Silicon() {
       id="silicon"
       num={10}
       kicker="Measured on silicon"
-      title="Measurements from the first chips"
+      title="Measurements from early silicon"
       steps={[
-        <p key="0">Most of what came before describes the design. The figures in this section were <strong>measured</strong> on the first Raptor silicon. At the {S.designMHz} MHz design target, a chunk arrives in about <strong className="num">{S.flitLatencyNs} ns</strong> on average, and a card moves about <strong className="num">{S.bandwidthPerCardTBs} TB/s</strong>.</p>,
+        <p key="0">Most of what came before describes the design. The figures in this section were <strong>measured</strong> on early Raptor silicon. At the {S.designMHz} MHz design target, a chunk arrives in about <strong className="num">{S.flitLatencyNs} ns</strong> on average, and a card moves about <strong className="num">{S.bandwidthPerCardTBs} TB/s</strong>.</p>,
         <p key="1">The team also varied the DRAM clock between {S.freqMinMHz} MHz and {S.freqMaxMHz / 1000} GHz. A faster clock raised bandwidth and lowered latency, as expected.</p>,
         <>
           <p key="2">Stream blocking contributes to these results. Each row of a bank holds several chunks, so the cost of opening a row is shared among all the chunks that are read from it.</p>

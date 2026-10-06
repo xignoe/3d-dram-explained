@@ -1,6 +1,6 @@
 import { Scene, type SceneState } from '../components/Scene';
-import { MEM_COLOR } from '../components/ui';
-import { RESULTS as R } from '../data/paper';
+import { MEM_COLOR, Note } from '../components/ui';
+import { PRIOR_WORK, RESULTS as R } from '../data/paper';
 
 function Tile({ value, label, color }: { value: number; label: React.ReactNode; color: string }) {
   return (
@@ -11,7 +11,35 @@ function Tile({ value, label, color }: { value: number; label: React.ReactNode; 
   );
 }
 
+function PriorWork() {
+  return (
+    <div className="flex h-full flex-col justify-center-safe gap-4">
+      <div className="sans text-sm text-muted">Recent 3D and in-memory designs, as summarized in the paper</div>
+      <table className="sans w-full border-y-[1.5px] border-ink text-left text-sm lg:text-base">
+        <thead>
+          <tr className="border-b border-line text-xs text-muted">
+            <th className="py-2 font-normal">Design</th>
+            <th className="py-2 font-normal">Effective bandwidth</th>
+            <th className="py-2 font-normal">Evidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          {PRIOR_WORK.map((p) => (
+            <tr key={p.name} className="border-b border-line last:border-b-0">
+              <td className={`py-3 font-serif text-lg lg:text-xl ${p.name === 'Raptor' ? 'text-dram3d' : 'text-ink'}`}>{p.name}</td>
+              <td className="num py-3">{p.bandwidth}</td>
+              <td className="py-3 text-muted">{p.validation}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="sans text-xs text-muted">Stratum’s figure is the paper’s estimate of effective system bandwidth once cross-chip routing is counted.</p>
+    </div>
+  );
+}
+
 function Visual({ step }: SceneState) {
+  if (step >= 3) return <PriorWork />;
   return (
     <div className="flex h-full flex-col justify-center-safe gap-3 lg:gap-8">
       <div className="sans hidden text-sm text-muted lg:block">Averaged across the paper’s models</div>
@@ -46,11 +74,17 @@ export function S12Results() {
       steps={[
         <p key="0">The paper’s performance model pairs the same compute logic with each type of memory and simulates serving several real models. Averaged across those models, 3D-DRAM delivers <strong className="num">{R.throughputVsHBM}×</strong> the tokens per second per card of HBM and <strong className="num">{R.throughputVsSRAM}×</strong> those of SRAM, and each user waits <strong className="num">{R.tpotLowerVsHBM}×</strong> less per token than with HBM.</p>,
         <p key="1">In one specific setting, with a {R.scenario.contextLabel} context and a network with {R.scenario.latencyUs} µs latency and {R.scenario.bandwidthTBs} TB/s of bandwidth, the improvement is <strong className="num">{R.scenario.vsHBM}×</strong> over HBM and <strong className="num">{R.scenario.vsSRAM}×</strong> over SRAM.</p>,
-        <p key="2">Raptor doesn’t come out ahead in every case. Small speech models fit on a single card, so capacity stops mattering and raw bandwidth decides the outcome; for those, SRAM is fastest. All of these figures also come from a model rather than from measurements of a working deployment.</p>,
+        <>
+          <p key="2">Raptor doesn’t come out ahead in every case. Small speech models fit on a single card, so capacity stops mattering and raw bandwidth decides the outcome; for those, SRAM is fastest. All of these figures also come from a model rather than from measurements of a working deployment.</p>
+          <Note>Because HBM holds more per card, the smallest HBM setups use fewer cards than Raptor. The paper also checks a fairer split, giving every design the same number of cards. HBM then runs larger batches, but at small and medium batch sizes 3D-DRAM stays ahead.</Note>
+        </>,
+        <p key="3">The paper also compares Raptor with two recent research designs that put memory and compute in 3D stacks, H2-LLM and Stratum. Both were evaluated in simulation, while Raptor’s memory system has been measured on a test chip. The paper argues that Raptor’s single, unified {PRIOR_WORK[2].bandwidth} pool avoids the bottleneck those designs hit when data has to move between chips, and in its model Raptor beats H2-LLM and the largest Stratum configuration at every batch size.</p>,
       ]}
-      description={() => `Modeled results: ${R.throughputVsHBM} times the throughput per card of HBM, ${R.throughputVsSRAM} times that of SRAM, and ${R.tpotLowerVsHBM} times lower time per output token than HBM, averaged across models. In one scenario: ${R.scenario.vsHBM} times over HBM and ${R.scenario.vsSRAM} times over SRAM. Exception: for small speech models SRAM is fastest.`}
+      description={(s) => s.step >= 3 ? `Table: ${PRIOR_WORK.map((p) => `${p.name}, effective bandwidth ${p.bandwidth}, evaluated by ${p.validation}`).join('; ')}.` : `Modeled results: ${R.throughputVsHBM} times the throughput per card of HBM, ${R.throughputVsSRAM} times that of SRAM, and ${R.tpotLowerVsHBM} times lower time per output token than HBM, averaged across models. In one scenario: ${R.scenario.vsHBM} times over HBM and ${R.scenario.vsSRAM} times over SRAM. Exception: for small speech models SRAM is fastest.`}
       visual={(s) => <Visual {...s} />}
-      figure={() => ({ evidence: 'modeled', caption: <>All results come from the paper’s performance model of the decode phase, with the same compute logic paired with each memory. Source: Abstract, Sec I, Sec VIII-C, Sec VIII-D.</> })}
+      figure={(s) => s.step >= 3
+        ? { caption: <>Architectural comparison from the paper’s Table V. Source: Sec X, Table V.</> }
+        : { evidence: 'modeled', caption: <>All results come from the paper’s performance model of the decode phase, with the same compute logic paired with each memory. Source: Abstract, Sec I, Sec VIII-C, Sec VIII-D.</> }}
     />
   );
 }

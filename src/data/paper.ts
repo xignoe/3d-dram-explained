@@ -169,6 +169,9 @@ export const STACKING = {
   bonding: 'face-to-face (F2F)', // Sec I, IV-B
   bitsPerBumpPerCycle: 1, // Sec I(ii) ("one bit per µbump per cycle")
   hbm4InterfaceBits: 2048, // Sec III-D ("HBM4 doubles the interface width to 2,048 bits")
+  c4MinPitchUm: 110, // Sec IV-B ("mixed-pitch C4 bumps (minimum 110µm)")
+  interposer: 'CoWoS interposer', // Sec IV-B ("a 3D CoWoS interposer")
+  substrate: 'organic substrate', // Sec IV-B ("a 9-4-9 organic substrate")
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -237,6 +240,10 @@ export const STREAM_BLOCKING = {
   smallBufferBytes: 96, // Sec IV-C(3) ("small buffers (96 B each)")
 } as const;
 
+/** DERIVED: one 96 B read of the partial region caches the 32 B partials of 3 consecutive chunks
+ *  (Sec IV-C(3): "caching 96 B of 32 B fragments for consecutive flits"). 96 / 32 = 3. */
+export const CHUNKS_PER_PARTIAL_READ = STREAM_BLOCKING.smallBufferBytes / STREAM_BLOCKING.partialBytes;
+
 /** Sec III-E worked example: one Llama-3.1-70B attention layer, FP16, 4K context. */
 export const LAYER_EXAMPLE = {
   model: 'Llama-3.1-70B', // Sec III-E ("one attention layer of Llama-3.1-70B")
@@ -251,6 +258,7 @@ export const LAYER_EXAMPLE = {
   rowsTotal: 1364, // Sec III-E
   fillLabel: 'less than 10%', // Sec III-E ("(<10%)")
   precision: 'FP16', // Sec III-E
+  pageKBMin: 4, // Sec III-E ("matches paged-attention page sizes (≥4 KB)")
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -294,7 +302,8 @@ export const BANK_CHAINING = {
 export const REFRESH = {
   hotThresholdC: 85, // Sec V-B ("required at Tj > 85°C")
   maxJunctionC: 105, // Sec I, IV-B, IV-E(3B)
-  coolIntervalMs: 16, // Sec V-B ("switching from 16 ms to 4 ms refresh")
+  coolIntervalMs: 16, // Sec V-B ("switching from 16 ms to 4 ms refresh"); the paper's comparison point, not a stated operating mode
+  evalIntervalMs: 2, // Sec VII-A ("100 TB/s of bandwidth (with 2 ms refresh and scrubbing)")
   hotIntervalMs: 4, // Sec IV-E(3B), V-B
   hbmNominalMs: 32, // Sec IV-E(3B) ("nominal 32 ms refresh used in HBM devices")
   moreFrequentX: 8, // Sec IV-E(3B) ("8x more frequent")
@@ -349,7 +358,7 @@ export const THERMAL = {
   cooling: [
     { id: 'air', label: 'Baseline air', rTheta: 0.16, ambientC: 55, maxChipletW: 63 }, // Sec V-C ("only 63 W per chiplet stays below the 105°C limit")
     { id: 'opt', label: 'Optimized heatsink', rTheta: 0.1, ambientC: 35, peakAt106C: 93, headroomW: 140 }, // Sec V-C ("peak Tj of ~93°C at 106 W ... headroom to ~140 W")
-    { id: 'liquid', label: 'Liquid cooling', rTheta: 0.02, ambientC: 35, belowC: 60 }, // Sec V-C ("Tj < 60°C at 106 W")
+    { id: 'liquid', label: 'Liquid cooling', rTheta: 0.02, belowC: 60 }, // Sec V-C ("Tj < 60°C at 106 W"); ambient not stated
   ],
 } as const;
 
@@ -494,7 +503,17 @@ export const CRITICAL = {
   batchSize: 32, // Sec VIII-A ("We therefore fix the batch size to 32")
   simulatedSeconds: 1, // Sec VIII-A ("Each simulation runs for 1s")
   arrivalRate: 110, // Sec VIII-A ("an arrival rate of 110 requests/s")
+  arrivalRateMax: 1000, // Table IV(a) (sweep up to 1000 req/s)
+  modeledCapacityX: [2, 4], // Sec VII-A, Table III ("3D-DRAM (2x Full)", "3D-DRAM (4x Full)")
+  stacksInTesting: '2-high and 4-high', // Sec VII-A ("Our lab is also testing chips with 2-High and 4-High stacking")
 } as const;
+
+/** Table V / Sec X: comparison with recent 3D and processing-in-memory designs. */
+export const PRIOR_WORK = [
+  { name: 'H2-LLM', bandwidth: '0.4 TB/s', validation: 'simulation' }, // Table V ("Effective BW 0.4 TB/s", "Validation Simulation")
+  { name: 'Stratum', bandwidth: '~10–35 TB/s', validation: 'simulation' }, // Table V ("∼10–35 TB/s *", estimated effective system bandwidth)
+  { name: 'Raptor', bandwidth: '100 TB/s', validation: 'silicon test chip' }, // Table V ("100 TB/s (Unified)", "Silicon Test Chip")
+] as const;
 
 // ---------------------------------------------------------------------------
 // Small derived helpers used by interactive controls

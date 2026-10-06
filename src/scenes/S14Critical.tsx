@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Chef } from '../components/ui';
-import { CRITICAL as C, HIERARCHY } from '../data/paper';
+import { CRITICAL as C, HIERARCHY, MEMORY } from '../data/paper';
 
 const ITEMS: { title: string; body: ReactNode }[] = [
   {
@@ -9,19 +9,19 @@ const ITEMS: { title: string; body: ReactNode }[] = [
   },
   {
     title: 'The baselines share Raptor’s compute logic',
-    body: <>Every comparison pairs d-Matrix’s own {C.sharedComputePFLOPS} PFLOPS compute logic with a different kind of memory. That isolates the effect of the memory, which is useful, but none of the baselines is an actual GPU or another company’s chip.</>,
+    body: <>The SRAM and HBM baselines pair d-Matrix’s own {C.sharedComputePFLOPS} PFLOPS compute logic with a different kind of memory. That is a deliberate choice that isolates the effect of the memory. It also means the baselines are not shipping products.</>,
   },
   {
     title: 'Results are given per card',
     body: <>The paper reports performance per card. It doesn’t compare cost or total system power, so better performance per card doesn’t necessarily mean a cheaper system to run.</>,
   },
   {
-    title: `${C.fastMemoryPerCardGB} GB of fast memory is still not much`,
-    body: <>Each card has far less fast memory than an HBM card. Large models still need many cards, or have to rely on the slower {HIERARCHY.mcm.lpddrGB} GB of LPDDR5X on each module.</>,
+    title: 'Capacity per card sits between SRAM and HBM',
+    body: <>{C.fastMemoryPerCardGB} GB per card is {MEMORY.dram3d.capacityGB / MEMORY.sram.capacityGB}× the SRAM design’s capacity, while an HBM card holds {MEMORY.hbm.capacityGB / MEMORY.dram3d.capacityGB}× as much again, so large models still span many cards or use the {HIERARCHY.mcm.lpddrGB} GB LPDDR5X tier on each module. The authors report that {C.stacksInTesting} stacks are in testing, and the paper models {C.modeledCapacityX.map((x) => `${x}×`).join(' and ')} capacity variants.</>,
   },
   {
-    title: 'The batch size comes from a short simulation',
-    body: <>The batch size of {C.batchSize} used throughout the evaluation is justified by a {C.simulatedSeconds}-second queueing simulation at {C.arrivalRate} requests per second. That is a reasonable choice, but real traffic is burstier and more varied.</>,
+    title: 'Some results fix the batch size',
+    body: <>The throughput curves sweep batch size, but the network-sensitivity results fix it at {C.batchSize}. The paper supports that choice with a queueing simulation ({C.arrivalRate} to {C.arrivalRateMax} requests per second) in which batches stay under {C.batchSize}. Heavier or burstier traffic would allow larger batches, which tends to favor higher-capacity memory such as HBM; the paper’s equal-card-count comparison explores this.</>,
   },
 ];
 
@@ -35,7 +35,7 @@ export function S14Critical() {
             <span className="kicker pb-1.5">Limitations</span>
           </div>
           <h2 id="critical-title" className="mt-3 text-[2rem] font-medium leading-[1.08] tracking-[-0.015em] lg:text-[2.6rem]">What the paper doesn’t show yet</h2>
-          <p className="mt-4 text-xl italic leading-snug text-muted">None of this undermines the main idea, but it is worth knowing which results were measured and which are projections.</p>
+          <p className="mt-4 text-xl italic leading-snug text-muted">None of this undermines the main idea, but it is worth knowing which results were measured and which are projections. These are our reading of the paper, not points the authors raise.</p>
         </div>
         <ol className="mt-10 lg:mt-0">
           {ITEMS.map((it, i) => (
@@ -50,7 +50,7 @@ export function S14Critical() {
         </ol>
       </div>
       <div className="mx-auto mt-10 max-w-[1100px] lg:pl-[calc(22rem+4rem)]">
-        <Chef>To finish the analogy: the pantry has moved under the kitchen and the trips are much shorter, but it is still a fairly small pantry.</Chef>
+        <Chef>To finish the analogy: the pantry has moved under the kitchen, and the trips are much shorter. The next question is how big a pantry can be built there.</Chef>
       </div>
     </section>
   );

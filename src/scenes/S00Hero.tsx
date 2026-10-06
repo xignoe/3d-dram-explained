@@ -26,12 +26,23 @@ function HeroSvg() {
           return <line key={i} x1={x} y1={y - 20} x2={x} y2={y + 46} stroke={P.ink3} strokeWidth="0.8" />;
         })}
         <path d="M-150 40 L0 -15 L150 40 L0 95 Z" fill={P.dramTint} />
+        <g stroke={P.dramMid} strokeWidth="0.5" opacity="0.7">
+          {Array.from({ length: 13 }, (_, i) => {
+            const t = (i + 1) / 14;
+            return (
+              <g key={i}>
+                <line x1={-150 + 150 * t} y1={40 - 55 * t} x2={0 + 150 * t} y2={95 - 55 * t} />
+                <line x1={-150 + 150 * t} y1={40 + 55 * t} x2={0 + 150 * t} y2={-15 + 55 * t} />
+              </g>
+            );
+          })}
+        </g>
         <path d="M-150 40 L0 95 L0 105 L-150 50 Z" fill={P.dramMid} />
         <path d="M150 40 L0 95 L0 105 L150 50 Z" fill={P.dramMid} />
       </g>
       <g className="svg-label" fontStyle="italic">
         <text x="360" y="58" textAnchor="end">logic die</text>
-        <text x="360" y="212" textAnchor="end">DRAM die</text>
+        <text x="372" y="236" textAnchor="end">DRAM die</text>
       </g>
     </svg>
   );
@@ -70,7 +81,7 @@ export function Hero() {
               Raptor, a chip from d-Matrix, puts its memory directly underneath its processor. This is a guide to why that helps, and to the {numberWord(PROBLEMS.length)} engineering problems it created.
             </p>
             <p className="sans mt-6 max-w-[52ch] text-sm leading-relaxed text-muted">
-              Based on “{CITATION.title},” by {CITATION.authors[0]} and colleagues at {CITATION.affiliations[0]} and the {CITATION.affiliations[1]}, presented at ISCA {CITATION.year}. The paper reports about{' '}
+              Based on “<a href={`https://doi.org/${CITATION.doi}`}>{CITATION.title}</a>,” by {CITATION.authors[0]} and {numberWord(CITATION.authors.length - 1)} colleagues at {CITATION.affiliations[0]} (Nair is also at the {CITATION.affiliations[1]}), presented at ISCA {CITATION.year}. The paper reports about{' '}
               <span className="num text-ink">{HERO.bandwidthPerCardTBs} TB/s</span> of memory <Term k="bandwidth">bandwidth</Term> per card.
             </p>
             <div className="max-w-[40ch]">
@@ -82,14 +93,14 @@ export function Hero() {
             </div>
           </div>
 
-          <figure className="flex flex-col" aria-label={`Illustration: one Raptor chiplet pulled apart, a logic die floating above a DRAM die with ${fmt(HIERARCHY.chiplet.banks)} memory banks, joined by thousands of tiny vertical connectors.`}>
+          <figure className="flex flex-col" aria-label={`Illustration: one Raptor chiplet pulled apart, a logic die floating above a DRAM die with ${fmt(HIERARCHY.chiplet.banks)} memory banks, joined by a dense array of tiny vertical connectors.`}>
             <div className="fig-head"><span className="fig-label">Fig. 0</span></div>
             <div className="relative h-[34svh] lg:h-[52svh]">
               <Gate3D fallback={<div className="absolute inset-0 grid place-items-center p-4"><HeroSvg /></div>}>
                 <HeroChiplet explodeRef={explode} active={inView} />
               </Gate3D>
             </div>
-            <figcaption className="fig-caption">One Raptor chiplet, with its two dies pulled apart. The logic die sits face to face on a DRAM die whose surface is divided into {fmt(HIERARCHY.chiplet.banks)} banks, and thousands of microscopic bumps connect the two.</figcaption>
+            <figcaption className="fig-caption">One Raptor chiplet, with its two dies pulled apart. The logic die sits face to face on a DRAM die whose surface is divided into {fmt(HIERARCHY.chiplet.banks)} banks, and a dense array of microscopic bumps connects the two.</figcaption>
           </figure>
         </div>
       </div>

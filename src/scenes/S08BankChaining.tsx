@@ -15,15 +15,17 @@ function scriptedFaults(step: number): number[] {
 }
 
 function assign(faults: Set<number>) {
+  const working = BC.chainLength - [...faults].filter((i) => i < BC.chainLength).length;
+  const formed = Math.min(BC.channels, Math.floor(working / BC.banksPerChannel));
+  // Banks left over after the last complete channel stay unused; they can't form a channel on their own.
   const owner: (number | null)[] = Array(BC.chainLength).fill(null);
   let k = 0;
   for (let i = 0; i < BC.chainLength; i++) {
     if (faults.has(i)) continue;
     const ch = Math.floor(k / BC.banksPerChannel);
-    if (ch < BC.channels) owner[i] = ch;
+    if (ch < formed) owner[i] = ch;
     k++;
   }
-  const formed = Math.min(BC.channels, Math.floor(k / BC.banksPerChannel));
   return { owner, formed };
 }
 
@@ -95,19 +97,18 @@ function Visual({ step }: SceneState) {
           const fill = bad ? P.paper : idle ? P.paper : owner[i]! % 2 ? P.dramDeep : P.dram;
           return (
             <g key={i} role="button" tabIndex={0} aria-pressed={bad}
-              aria-label={`Bank ${i + 1}: ${bad ? 'faulty' : idle ? 'unused spare' : `in channel ${(owner[i] ?? 0) + 1}`}. Toggle fault.`}
+              aria-label={`Bank ${i + 1}: ${bad ? 'faulty' : idle ? 'unused' : `in channel ${(owner[i] ?? 0) + 1}`}. Toggle fault.`}
               onClick={() => toggle(i)}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(i); } }}
               style={{ cursor: 'pointer', outline: 'none' }} className="[&:focus-visible>rect]:stroke-[2.5]">
               <rect x={a.x} y={a.y} width={tileW} height={tileH} rx={1.5} fill={fill} stroke={bad ? P.danger : idle ? P.spareInk : P.ink} strokeDasharray={idle ? '3 2' : undefined} strokeWidth={1} className="fade" />
               {!bad && !idle && [0.3, 0.5, 0.7].map((f) => <line key={f} x1={a.x + 3} x2={a.x + tileW - 3} y1={a.y + tileH * f} y2={a.y + tileH * f} stroke={P.paper} strokeOpacity={0.45} />)}
               {bad && <path d={`M${a.x + 4} ${a.y + 8} L${a.x + tileW - 4} ${a.y + tileH - 8} M${a.x + tileW - 4} ${a.y + 8} L${a.x + 4} ${a.y + tileH - 8}`} stroke={P.danger} strokeWidth={2} />}
-              {idle && <text x={a.x + tileW / 2} y={a.y + tileH / 2 + 4} textAnchor="middle" fontSize="9" fill={P.spareInk}>sp</text>}
             </g>
           );
         })}
       </svg>
-      <p className="sans text-xs text-muted">Click or tab to a bank and press Enter to break it. Spares are drawn dashed.</p>
+      <p className="sans text-xs text-muted">Click or tab to a bank and press Enter to break it. Unused banks are drawn dashed.</p>
     </div>
   );
 }
@@ -122,7 +123,7 @@ export function S08BankChaining() {
       title="Working around faulty banks"
       steps={[
         <>
-          <p key="0">A die with hundreds of <Term k="bank">banks</Term> will almost always have a few that don’t work, and throwing those dies away would be expensive. Simply switching off a faulty bank isn’t a good answer either. Its channel ends up narrower than the others, and because the channels work in lockstep, the narrowest one sets the pace for all of them.</p>
+          <p key="0">A die with hundreds of <Term k="bank">banks</Term> is likely to have a few that don’t work, and throwing those dies away would be expensive. Simply switching off a faulty bank isn’t a good answer either. Its channel ends up narrower than the others, and because the tensor engines consume their channels in lockstep, one narrow channel sets the pace for all of them.</p>
           <p>Raptor’s solution is to arrange the banks in chains with spares mixed in among them. These are the {BANK_BUDGET.spares} spare banks mentioned in the first problem.</p>
         </>,
         <p key="1">The figure shows one chain from the paper’s example, with <strong className="num">{BC.functional}</strong> banks and <strong className="num">{BC.redundant}</strong> spares forming <strong className="num">{BC.channels}</strong> channels of {BC.banksPerChannel}. When a bank fails, every channel after it moves over by one position.</p>,
@@ -135,7 +136,7 @@ export function S08BankChaining() {
       ]}
       description={() => `Interactive: a row of ${BC.chainLength} bank tiles, ${BC.functional} regular and ${BC.redundant} spare, grouped into ${BC.channels} channels of ${BC.banksPerChannel}. Tapping a tile marks it faulty; channels shift past faulty banks. Up to ${BC.maxFaults} faults keep all ${BC.channels} channels intact; a third breaks one.`}
       visual={(s) => <Visual {...s} />}
-      figure={() => ({ caption: <>One chain from the paper’s example: {BC.functional} banks and {BC.redundant} spares forming {BC.channels} channels of {BC.banksPerChannel}. Each bank connects to the tensor engine of the channel it belongs to; dashed tiles are spares that aren’t in use. Source: Sec IV-E, Fig. 8.</> })}
+      figure={() => ({ caption: <>One chain from the paper’s example: {BC.functional} banks and {BC.redundant} spares forming {BC.channels} channels of {BC.banksPerChannel}. Each bank connects to the tensor engine of the channel it belongs to; dashed tiles are banks not currently in use. Source: Sec IV-E, Fig. 8.</> })}
     />
   );
 }

@@ -208,21 +208,21 @@ export function S07StreamFlipping() {
         <p key="1">The figure shows a stream of {SF.chunkBytes}-byte chunks crossing the connections, with the newest at the top. Orange cells mark connections whose value changed since the previous chunk, and the counter keeps a running total.</p>,
         <>
           <p key="2">Conventional memory reduces switching with a technique called <Term k="dbi">data bus inversion</Term>, but that relies on an extra signal pin and on data arriving in bursts over several clock cycles. Raptor’s stacked interface has neither, so the same job is done in the memory controller instead. The paper calls this <strong>stream flipping</strong>.</p>
-          <p>If sending a chunk as it is would switch more than half of the connections, the controller sends the inverted chunk and stores one extra bit to record that it did. When the chunk is read back, that bit tells the controller to invert it again.</p>
+          <p>It works because of stream blocking: chunks are read back in the same order they were written. So the controller decides when it writes. It compares each chunk with the previous one on that channel, stores it inverted if that means fewer connections switch, and records the choice in a single flag bit kept in a small side region of the DRAM. When the stream is read back, the connections see the low-switching version, and the flag says which chunks to flip back. Because the flag lives in memory, no extra pin is needed.</p>
         </>,
         <p key="3">On the chip, the worst case measured <strong className="num">{SF.beforePJPerBit} pJ</strong> per bit. With stream flipping the effective switching rate falls to {SF.effectiveSwitching}, and the energy to <strong className="num">{SF.afterPJPerBit} pJ</strong> per bit, a reduction of {SF.reductionPct}% that needed no additional pins.</p>,
       ]}
       description={(s) =>
         s.step === 0 ? `Large number: about ${SF.ioPowerAt100TBsW} watts of I/O power per card at ${SF.atBandwidthTBs} TB/s.`
           : s.step >= 3 ? `Measured result: ${SF.beforePJPerBit} picojoules per bit worst case, ${SF.afterPJPerBit} with stream flipping, an ${SF.reductionPct} percent reduction.`
-            : 'Interactive illustration: rows of bits stream past; bits that switched are highlighted and counted. With stream flipping on, rows that would switch more than half the wires are inverted and marked with a flag bit, and the switch counter grows more slowly. Controls: flipping on/off, data pattern, pause.'
+            : 'Interactive illustration: rows of bits stream past; bits that switched are highlighted and counted. With stream flipping on, rows that would switch more than half the wires are stored inverted and marked with a flag bit, and the switch counter grows more slowly. Controls: flipping on/off, data pattern, pause.'
       }
       visual={(s) => <Visual {...s} />}
       figure={(s) => s.step === 0
         ? { caption: <>The I/O power a Raptor card would draw at full bandwidth without any countermeasure. Source: Sec IV-D.</> }
         : s.step >= 3
           ? { evidence: 'measured', caption: <>Measured I/O energy at {SF.measuredAtMHz} MHz with {SF.banksAtResult} active banks, every wire switching versus with stream flipping. Source: Sec V-A, Fig. 10.</> }
-          : { caption: <>An illustration rather than data. Each row is one chunk, drawn with fewer wires than the real {fmt(SF.chunkBits)}. Orange cells are wires that changed value, and when flipping is on, a filled flag marks chunks that were sent inverted.</> }}
+          : { caption: <>An illustration rather than data. Each row is one chunk, drawn with fewer wires than the real {fmt(SF.chunkBits)}. Orange cells are wires that changed value, and when flipping is on, a filled flag marks chunks stored inverted.</> }}
     />
   );
 }

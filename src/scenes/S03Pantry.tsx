@@ -126,7 +126,7 @@ export function S03Pantry() {
       ]}
       description={(s) =>
         s.step < 3
-          ? `Scatter chart of bandwidth versus capacity per card. SRAM: ${sram.bandwidthTBs} TB/s, ${sram.capacityGB} GB. HBM: ${hbm.bandwidthTBs} TB/s, ${hbm.capacityGB} GB. 3D-DRAM: ${dram3d.bandwidthTBs} TB/s, ${dram3d.capacityGB} GB.`
+          ? `Drawing of three memories attached to the same processor, with box area proportional to capacity and channel width proportional to bandwidth. SRAM: ${sram.bandwidthTBs} TB/s, ${sram.capacityGB} GB. HBM: ${hbm.bandwidthTBs} TB/s, ${hbm.capacityGB} GB. 3D-DRAM: ${dram3d.bandwidthTBs} TB/s, ${dram3d.capacityGB} GB.`
           : `Derived bar chart, bandwidth divided by capacity: SRAM about ${fmt(fullMemoryReadsPerSecond('sram'), 0)} full reads per second, 3D-DRAM about ${fmt(fullMemoryReadsPerSecond('dram3d'), 0)}, HBM about ${fmt(fullMemoryReadsPerSecond('hbm'), 0)}.`
       }
       visual={(s) => <Visual {...s} />}

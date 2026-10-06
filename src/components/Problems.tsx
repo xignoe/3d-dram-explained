@@ -22,7 +22,7 @@ export function ProblemsBridge() {
         <h2 id="problems-title" className="mt-3 max-w-[20ch] text-4xl font-medium leading-[1.05] tracking-tight lg:text-6xl">
           Stacking memory under logic created {numberWord(PROBLEMS.length)} new problems
         </h2>
-        <p className="mt-5 max-w-[52ch] text-xl italic leading-snug text-muted">The paper is organized around lessons from the first silicon. Each of these problems needed its own solution, and the next four sections take them in turn.</p>
+        <p className="mt-5 max-w-[52ch] text-xl italic leading-snug text-muted">The paper is organized around lessons from early silicon. Each of these problems needed its own solution, and the next four sections take them in turn.</p>
         <ol className="mt-12 grid gap-x-10 sm:grid-cols-2 lg:grid-cols-4">
           {PROBLEMS.map((p, i) => (
             <li key={p.short} className="border-t border-line py-5">

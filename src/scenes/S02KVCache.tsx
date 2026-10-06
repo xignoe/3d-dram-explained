@@ -20,32 +20,37 @@ const KV_MAX = kvCacheGB(KV_SLIDERS.contextMax, KV_SLIDERS.usersMax);
  */
 function AreaBlocks({ kv, users, ctx }: { kv: number; users: number; ctx: number }) {
   const narrow = !useDesktop();
-  const W = narrow ? 380 : 560, H = 270, base = 248;
+  const W = narrow ? 300 : 560, H = narrow ? 222 : 270, base = narrow ? 186 : 248;
   const k = (narrow ? 170 : 225) / Math.sqrt(KV_MAX);
   const perRow = narrow ? 2 : BUBBLES_PER_ROW;
   const wSide = k * Math.sqrt(KV_INTRO.weightsGB);
   const kvSide = Math.max(2, k * Math.sqrt(kv));
+  // Square cells, one per user, stacked from the floor up so the total area stays exactly to scale.
   const cols = Math.ceil(Math.sqrt(users));
-  const rows = Math.ceil(users / cols);
-  const cw = kvSide / cols, ch = kvSide / rows;
-  const kvX = narrow ? 104 : 150;
+  const cell = kvSide / Math.sqrt(users);
+  const full = Math.floor(users / cols), rest = users % cols;
+  const kvW = cols * cell, kvH = (full + (rest ? 1 : 0)) * cell;
+  const kvX = narrow ? 96 : 150;
+  const fs = narrow ? 13 : 11;
   const bubbleLen = 8 + 22 * (Math.log2(ctx / KV_SLIDERS.contextMin) / Math.log2(KV_SLIDERS.contextMax / KV_SLIDERS.contextMin));
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" aria-hidden>
       {/* weights */}
       <rect x={20} y={base - wSide} width={wSide} height={wSide} fill={P.logicDark} stroke={P.ink} strokeWidth={1} />
-      <text x={20} y={base + 16} fontSize="11" fill={P.ink2}>weights, {KV_INTRO.weightsGB} GB</text>
+      {narrow
+        ? <text x={20} y={base + 18} fontSize={fs} fill={P.ink2}>weights<tspan x={20} dy={fs + 2}>{KV_INTRO.weightsGB} GB</tspan></text>
+        : <text x={20} y={base + 16} fontSize={fs} fill={P.ink2}>weights, {KV_INTRO.weightsGB} GB</text>}
       {/* KV cache, one cell per user */}
       <g className="fade">
         {Array.from({ length: users }, (_, i) => (
-          <rect key={i} x={kvX + (i % cols) * cw} y={base - kvSide + Math.floor(i / cols) * ch} width={cw} height={ch}
+          <rect key={i} x={kvX + (i % cols) * cell} y={base - (Math.floor(i / cols) + 1) * cell} width={cell} height={cell}
             fill={(i + Math.floor(i / cols)) % 2 ? P.dram : P.dramMid} stroke={P.paper} strokeWidth={kvSide > 40 ? 0.8 : 0} />
         ))}
-        <rect x={kvX} y={base - kvSide} width={kvSide} height={kvSide} fill="none" stroke={P.ink} strokeWidth={1} />
+        <path d={`M${kvX} ${base} H${kvX + kvW} V${base - full * cell}${rest ? ` H${kvX + rest * cell} V${base - kvH}` : ''} H${kvX} Z`} fill="none" stroke={P.ink} strokeWidth={1} />
       </g>
-      <text x={kvX} y={base + 16} fontSize="11" fill={P.dram}>KV cache, {fmt(kv)} GB</text>
-      {/* one speech bubble per user; longer bubbles mean longer conversations */}
-      <g transform={`translate(${kvX + kvSide + (narrow ? 10 : 20)} ${base - Math.ceil(users / perRow) * 13 - 2})`}>
+      <text x={kvX} y={base + (narrow ? 18 : 16)} fontSize={fs} fill={P.dram}>KV cache, {fmt(kv)} GB</text>
+      {/* one speech bubble per user; longer bubbles mean longer conversations (desktop only) */}
+      {!narrow && <g transform={`translate(${kvX + kvW + (narrow ? 10 : 20)} ${base - Math.ceil(users / perRow) * 13 - 2})`}>
         {Array.from({ length: users }, (_, i) => {
           const bx = (i % perRow) * (bubbleLen + 12), by = Math.floor(i / perRow) * 13;
           return (
@@ -55,7 +60,8 @@ function AreaBlocks({ kv, users, ctx }: { kv: number; users: number; ctx: number
             </g>
           );
         })}
-      </g>
+        <text x={0} y={-20} fontSize={10} fill={P.ink3}>one per conversation,<tspan x={0} dy={12}>longer with more context</tspan></text>
+      </g>}
       <line x1={10} x2={W - 10} y1={base} y2={base} stroke={P.ink} strokeWidth={1} />
     </svg>
   );
@@ -87,11 +93,11 @@ function Visual({ step, progress }: SceneState) {
   const note = matchNote(v.ctx, v.users);
 
   return (
-    <div className="flex h-full flex-col justify-center-safe gap-5 lg:gap-8">
+    <div className="flex h-full flex-col justify-center-safe gap-3 lg:gap-8">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
         <div>
           <div className="sans text-sm text-muted">KV cache for {v.users} user{v.users > 1 ? 's' : ''} at {contextLabel(v.ctx)} tokens</div>
-          <div className="num mt-1 font-serif text-6xl font-medium leading-none tracking-tight text-dram3d lg:text-8xl" aria-live="polite">
+          <div className="num mt-1 font-serif text-5xl font-medium leading-none tracking-tight text-dram3d lg:text-8xl" aria-live="polite">
             {fmt(kv)}<span className="ml-2 text-2xl font-normal text-muted lg:text-3xl">GB</span>
           </div>
         </div>
@@ -141,7 +147,7 @@ export function S02KVCache() {
       visual={(s) => <Visual {...s} />}
       figure={() => ({
         evidence: 'derived',
-        caption: <>Block areas are drawn to scale, one cell and one speech bubble per user. KV cache size ≈ {KV_INTRO.mbPerTokenPerUser} MB × tokens × users, for the paper’s {KV_INTRO.modelLabel} example with {KV_INTRO.precisionLabel} storage ({KV_INTRO.layers} layers, {KV_INTRO.kvHeads} KV heads, head size {KV_INTRO.headDim}). A note appears when the values match ones the paper states. Source: Sec I, Sec III-B.</>,
+        caption: <>Block areas are drawn to scale, with one cell per user. KV cache size ≈ {KV_INTRO.mbPerTokenPerUser} MB × tokens × users, for the paper’s {KV_INTRO.modelLabel} example with {KV_INTRO.precisionLabel} storage ({KV_INTRO.layers} layers, {KV_INTRO.kvHeads} KV heads, head size {KV_INTRO.headDim}). A note appears when the values match ones the paper states. Source: Sec I, Sec III-B.</>,
       })}
     />
   );

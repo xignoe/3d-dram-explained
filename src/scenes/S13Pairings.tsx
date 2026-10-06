@@ -108,7 +108,7 @@ export function S13Pairings() {
       title="Pairing Raptor with a GPU"
       steps={[
         <p key="0"><strong>Attention–FFN disaggregation.</strong> In a mixture-of-experts model, the attention layers mostly need room for the KV cache, which a GPU’s large HBM provides, while the expert layers mostly need to read their weights quickly, which is where Raptor is strongest. The paper describes running attention on the GPU and the experts on Raptor, passing activations between them at every layer.</p>,
-        <p key="1"><strong>Speculative decoding.</strong> A small draft model proposes the next K tokens one at a time, which is limited by memory bandwidth and suits Raptor. A larger model then checks all K proposals in a single parallel pass, which is limited by compute and suits a GPU. The paper notes that d-Matrix’s earlier chip, Corsair, has already shown sizable speedups with this arrangement.</p>,
+        <p key="1"><strong>Speculative decoding.</strong> A small draft model proposes the next K tokens one at a time, which is limited by memory bandwidth and suits Raptor. A larger model then checks all K proposals in a single parallel pass, which is limited by compute and suits a GPU. The paper cites a production deployment on d-Matrix’s earlier chip, Corsair, which reported sizable end-to-end speedups with exactly this arrangement.</p>,
       ]}
       description={(s) => s.step === 0
         ? 'Swim-lane diagram: the GPU runs attention, sends activations to Raptor, which runs the expert layers and returns results for the next layer.'

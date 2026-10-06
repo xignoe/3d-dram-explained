@@ -5,6 +5,6 @@ export const fmt = (n: number, maxFrac = 2) =>
 export const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
 /** Spell small counts in prose ("four problems"); the count itself comes from paper.ts. */
 export const numberWord = (n: number) => WORDS[n] ?? String(n);
