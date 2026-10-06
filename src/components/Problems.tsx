@@ -1,35 +1,35 @@
 import { PROBLEMS } from '../data/paper';
 import { numberWord } from '../lib/fmt';
 
-/** Chips showing the four integration problems, with the current one highlighted. */
+/** A small typographic index of the four problems, with the current one marked. */
 export function ProblemChips({ active }: { active: number }) {
   return (
-    <span className="mb-3 flex flex-wrap gap-1.5" aria-label={`Problem ${active + 1} of ${PROBLEMS.length}`}>
+    <ol className="sans flex flex-wrap gap-x-4 gap-y-1 text-[0.78rem]" aria-label={`Problem ${active + 1} of ${PROBLEMS.length}`}>
       {PROBLEMS.map((p, i) => (
-        <span key={p.short} className={`rounded-full border px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider ${i === active ? 'border-ink bg-ink text-bg' : 'border-line text-faint'}`}>
-          {i + 1} · {p.short}
-        </span>
+        <li key={p.short} className={i === active ? 'font-semibold text-ink underline decoration-[1.5px] underline-offset-4' : 'text-faint'}>
+          <span className="num">{i + 1}</span> {p.short}
+        </li>
       ))}
-    </span>
+    </ol>
   );
 }
 
 export function ProblemsBridge() {
   return (
-    <section aria-labelledby="problems-title" className="border-t border-line/60 px-4 py-[18svh] lg:px-12">
-      <div className="mx-auto max-w-[1100px]">
+    <section aria-labelledby="problems-title" className="px-4 py-[16svh] sm:px-6 lg:px-12">
+      <div className="mx-auto max-w-[1100px] border-t-[1.5px] border-ink pt-8">
         <p className="kicker">Interlude</p>
-        <h2 id="problems-title" className="max-w-[22ch] text-3xl font-semibold tracking-tight lg:text-5xl">
-          Stacking memory under logic creates {numberWord(PROBLEMS.length)} new problems.
+        <h2 id="problems-title" className="mt-3 max-w-[20ch] text-4xl font-medium leading-[1.05] tracking-tight lg:text-6xl">
+          Putting memory under the logic creates {numberWord(PROBLEMS.length)} new problems.
         </h2>
-        <p className="mt-4 max-w-[60ch] text-lg text-muted">The paper is a set of lessons from the first silicon. Each problem below got its own fix.</p>
-        <ol className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <p className="mt-5 max-w-[52ch] text-xl italic leading-snug text-muted">The paper is a set of lessons learned from the first chips. Each problem got its own fix.</p>
+        <ol className="mt-12 grid gap-x-10 sm:grid-cols-2 lg:grid-cols-4">
           {PROBLEMS.map((p, i) => (
-            <li key={p.short} className="panel p-4">
-              <a href={`#${p.scene}`} className="block">
-                <div className="num text-3xl text-faint">{i + 1}</div>
-                <div className="mt-2 font-semibold text-ink">{p.short}</div>
-                <div className="mt-1 text-sm text-muted">Paper: “{p.paper}”</div>
+            <li key={p.short} className="border-t border-line py-5">
+              <a href={`#${p.scene}`} className="block no-underline">
+                <div className="section-num !text-5xl">{i + 1}</div>
+                <div className="mt-3 text-xl font-medium text-ink">{p.short}</div>
+                <div className="sans mt-2 text-sm leading-snug text-muted">In the paper’s words: “{p.paper}.”</div>
               </a>
             </li>
           ))}

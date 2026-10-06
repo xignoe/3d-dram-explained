@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Scene, type SceneState } from '../components/Scene';
 import { ProblemChips } from '../components/Problems';
-import { Badge, BigStat, Src, Term } from '../components/ui';
+import { BigStat, Term } from '../components/ui';
 import { STREAM_FLIPPING as SF } from '../data/paper';
 import { TOY } from '../data/illustrative';
 import { useDesktop, useTicker } from '../lib/hooks';
 import { fmt } from '../lib/fmt';
+import { P } from '../lib/palette';
 
 type Pattern = 'random' | 'alternating' | 'similar';
 interface Row { bits: Uint8Array; flag: boolean; switches: number }
@@ -65,7 +66,7 @@ function Strip({ rows, flipOn, N }: { rows: Row[]; flipOn: boolean; N: number })
             {Array.from(r.bits).map((b, k) => {
               const changed = below ? below.bits[k] !== b : false;
               return <rect key={k} x={k * (C + G)} width={C} height={RH - 4} rx={1.5}
-                fill={changed ? 'var(--color-sram)' : b ? '#7d8aa6' : '#232a38'} />;
+                fill={changed ? P.sram : b ? P.ink2 : P.plate2} />;
             })}
             {flipOn && (
               <rect x={N * (C + G) + 10} width={C + 4} height={RH - 4} rx={2} fill={r.flag ? 'var(--color-dram3d)' : 'transparent'} stroke="var(--color-dram3d)" strokeOpacity={0.5} />
@@ -93,22 +94,22 @@ function Visual({ step, inView, reduced }: SceneState) {
 
   if (step === 0 || step >= 3) {
     return (
-      <div className="flex h-full flex-col justify-center gap-6 lg:gap-10">
+      <div className="flex h-full flex-col justify-center-safe gap-6 lg:gap-10">
         {step === 0 ? (
           <div className="panel p-5 lg:p-8">
-            <BigStat size="xl" value={`≈${SF.ioPowerAt100TBsW}`} unit="W" color="var(--color-sram)" label={<>of power per card spent just switching the memory wires, at {SF.atBandwidthTBs} TB/s, before any fix. <Src>Sec IV-D</Src></>} />
+            <BigStat size="xl" value={`≈${SF.ioPowerAt100TBsW}`} unit="W" color="var(--color-ink)" label={<>of power per card spent just switching the memory wires, at {SF.atBandwidthTBs} TB/s, before any fix.</>} />
           </div>
         ) : (
           <div className="panel p-5 lg:p-8">
-            <div className="mb-4 flex items-center justify-between"><span className="text-sm text-muted">Measured I/O energy, worst case vs. with stream flipping</span><Badge kind="measured" /></div>
+            <div className="sans mb-3 text-sm text-muted lg:mb-5">I/O energy, worst case versus with stream flipping</div>
             <div className="flex flex-wrap items-end gap-6">
               <BigStat value={SF.beforePJPerBit} unit="pJ/bit" label="every wire switching" color="var(--color-muted)" />
-              <span className="num pb-6 text-3xl text-faint">→</span>
+              <span className="hidden pb-8 font-serif text-4xl text-faint lg:inline">→</span>
               <BigStat value={SF.afterPJPerBit} unit="pJ/bit" label="with stream flipping" color="var(--color-dram3d)" />
             </div>
-            <div className="mt-6 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-              <span className="num text-5xl font-semibold text-dram3d lg:text-7xl">−{SF.reductionPct}%</span>
-              <span className="text-sm text-muted">energy, with no extra pins and one flag bit per {SF.chunkBytes}-byte chunk. <Src>Sec V-A, Fig. 10</Src></span>
+            <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-line pt-3 lg:mt-8 lg:pt-5">
+              <span className="num font-serif text-5xl font-medium text-dram3d lg:text-8xl">−{SF.reductionPct}%</span>
+              <span className="sans hidden max-w-[22ch] text-sm text-muted lg:inline">energy, with no extra pins and one flag bit per {SF.chunkBytes}-byte chunk</span>
             </div>
           </div>
         )}
@@ -121,27 +122,26 @@ function Visual({ step, inView, reduced }: SceneState) {
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div className="flex items-end gap-4 lg:gap-6">
           <div>
-            <div className="text-[0.7rem] text-muted">wire switches</div>
-            <div className="num text-2xl text-sram lg:text-4xl" aria-live="off">{fmt(totals.actual)}</div>
+            <div className="sans text-xs text-muted">wire switches</div>
+            <div className="num font-serif text-3xl font-medium text-sram-ink lg:text-5xl" aria-live="off">{fmt(totals.actual)}</div>
           </div>
           {flipOn && (
             <div>
-              <div className="text-[0.7rem] text-muted">without flipping</div>
-              <div className="num text-2xl text-faint lg:text-4xl">{fmt(totals.baseline)}</div>
+              <div className="sans text-xs text-muted">without flipping</div>
+              <div className="num font-serif text-3xl text-faint lg:text-5xl">{fmt(totals.baseline)}</div>
             </div>
           )}
-          {flipOn && totals.chunks > 0 && <div className="num pb-1 text-sm text-dram3d">−{fmt(saved * 100, 0)}% here</div>}
+          {flipOn && totals.chunks > 0 && <div className="sans num pb-1.5 text-sm text-dram3d">−{fmt(saved * 100, 0)}% here</div>}
         </div>
-        <span className="text-[0.65rem] uppercase tracking-wider text-faint">illustration</span>
       </div>
       <div className="min-h-0 flex-1"><Strip rows={rows} flipOn={flipOn} N={N} /></div>
-      <div className="flex flex-wrap items-center gap-2 text-xs">
+      <div className="sans flex flex-wrap items-center gap-3 border-t border-line pt-3 text-xs">
         <button className="chip-btn" role="switch" aria-checked={flipOn} aria-pressed={flipOn} onClick={() => setManualFlip(!flipOn)}>
           Stream flipping: {flipOn ? 'on' : 'off'}
         </button>
-        <label className="flex items-center gap-1 text-muted">
+        <label className="flex items-center gap-1.5 text-muted">
           Data
-          <select className="rounded-md border border-line bg-surface px-2 py-1 text-ink" value={pattern} onChange={(e) => setPattern(e.target.value as Pattern)}>
+          <select value={pattern} onChange={(e) => setPattern(e.target.value as Pattern)}>
             <option value="random">random</option>
             <option value="similar">mostly similar</option>
             <option value="alternating">worst case</option>
@@ -157,7 +157,9 @@ export function S07StreamFlipping() {
   return (
     <Scene
       id="stream-flipping"
-      kicker={<><ProblemChips active={1} /><span className="block">7 · Problem 2: stream flipping</span></>}
+      num={7}
+      kicker="Problem 2 · Stream flipping"
+      eyebrow={<ProblemChips active={1} />}
       title="Every wire that flips costs energy."
       steps={[
         <p key="0">Each wire between the dies carries a 0 or a 1. Every time a wire <strong>switches</strong> from one to the other, it burns a little energy. Multiply that by the stack’s enormous number of wires, and at {SF.atBandwidthTBs} TB/s a Raptor card would spend about <strong className="num">{SF.ioPowerAt100TBsW} W</strong> on that alone.</p>,
@@ -174,6 +176,11 @@ export function S07StreamFlipping() {
             : 'Interactive illustration: rows of bits stream past; bits that switched are highlighted and counted. With stream flipping on, rows that would switch more than half the wires are inverted and marked with a flag bit, and the switch counter grows more slowly. Controls: flipping on/off, data pattern, pause.'
       }
       visual={(s) => <Visual {...s} />}
+      figure={(s) => s.step === 0
+        ? { caption: <>I/O power for a Raptor card at full bandwidth if nothing were done. Source: Sec IV-D.</> }
+        : s.step >= 3
+          ? { evidence: 'measured', caption: <>Measured I/O energy at {SF.measuredAtMHz} MHz with {SF.banksAtResult} active banks, every wire switching versus with stream flipping. Source: Sec V-A, Fig. 10.</> }
+          : { caption: <>Illustration, not data. Each row is one chunk, with fewer wires than the real {fmt(SF.chunkBits)}. Orange cells are wires that had to switch; with flipping on, a flag marks inverted chunks.</> }}
     />
   );
 }

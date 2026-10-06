@@ -268,6 +268,8 @@ export const STREAM_FLIPPING = {
   afterPJPerBit: 0.376, // Sec V-A ("yielding 0.376 pJ/bit") — measured, 8 banks
   effectiveSwitching: '40–48%', // Sec V-A
   noPinChange: true, // Sec IV-D ("without changes to the DRAM PHY")
+  measuredAtMHz: 500, // Fig. 10 caption ("Measured I/O energy vs. number of active banks at 500 MHz")
+  banksAtResult: 8, // Sec V-A ("At 8 banks, the worst-case energy is 0.455 pJ/bit")
   evidence: 'measured' as Evidence, // Fig. 10 ("Measured I/O energy")
 } as const;
 

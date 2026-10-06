@@ -2,6 +2,7 @@ import { Scene, type SceneState } from '../components/Scene';
 import { Chef, Term } from '../components/ui';
 import { TOY } from '../data/illustrative';
 import { useDesktop } from '../lib/hooks';
+import { P } from '../lib/palette';
 
 const CHIP_W = 64, CHIP_H = 30, GAP = 6, H = 420;
 const MEM_Y = 320;
@@ -30,23 +31,23 @@ function Visual({ step, progress }: SceneState) {
       <text x={20} y={36} className="svg-label">Prompt</text>
       <text x={20} y={136} className="svg-label">Reply</text>
       <text x={W - 20} y={36} textAnchor="end" className="svg-label">
-        trips to memory: <tspan className="svg-num" fill="var(--color-ink)" fontSize="15">{(prefillLit ? 1 : 0) + shown}</tspan>
+        trips to memory <tspan className="svg-num" fill={P.ink} fontSize="16" fontWeight={600}>{(prefillLit ? 1 : 0) + shown}</tspan>
       </text>
 
       {/* Prefill: one wide band, all tokens at once */}
       <path
         d={`M${rowX(W, prompt.length, 0)} ${74} L${rowX(W, prompt.length, prompt.length - 1) + CHIP_W} ${74} L${W - 70} ${MEM_Y} L${70} ${MEM_Y} Z`}
-        fill="var(--color-logic)"
+        fill={P.sramTint}
         className="fade"
-        opacity={step === 1 ? 0.12 + progress * 0.1 : 0}
+        opacity={step === 1 ? 0.35 + progress * 0.2 : 0}
       />
 
       {prompt.map((t, i) => (
         <g key={t + i} transform={`translate(${rowX(W, prompt.length, i)} 44)`}>
-          <rect width={CHIP_W} height={CHIP_H} rx={7} className="fade"
-            fill={prefillLit ? 'var(--color-surface-2)' : 'transparent'}
-            stroke={prefillLit ? 'var(--color-logic)' : 'var(--color-line)'} />
-          <text x={CHIP_W / 2} y={20} textAnchor="middle" fontSize="13" fill={prefillLit ? 'var(--color-ink)' : 'var(--color-faint)'}>{t}</text>
+          <rect width={CHIP_W} height={CHIP_H} rx={2} className="fade"
+            fill={prefillLit ? P.plate : P.paper}
+            stroke={prefillLit ? P.ink : P.rule} />
+          <text x={CHIP_W / 2} y={20} textAnchor="middle" fontSize="15" fontStyle="italic" style={{ fontFamily: 'var(--font-serif)' }} fill={prefillLit ? P.ink : P.ink3}>{t}</text>
         </g>
       ))}
 
@@ -56,13 +57,13 @@ function Visual({ step, progress }: SceneState) {
         const on = i < shown;
         return (
           <g key={t + i}>
-            <line x1={x + CHIP_W / 2} y1={y + CHIP_H} x2={x + CHIP_W / 2} y2={MEM_Y} stroke="var(--color-dram3d)" strokeOpacity={on ? (i === latest && step === 2 ? 0.7 : 0.18) : 0} strokeDasharray="3 4" className="fade" />
+            <line x1={x + CHIP_W / 2} y1={y + CHIP_H} x2={x + CHIP_W / 2} y2={MEM_Y} stroke={P.dram} strokeOpacity={on ? (i === latest && step === 2 ? 0.9 : 0.3) : 0} strokeDasharray="2 4" className="fade" />
             <g transform={`translate(${x} ${y})`} className="fade" opacity={on ? 1 : 0.15}>
-              <rect width={CHIP_W} height={CHIP_H} rx={7} fill={on ? 'var(--color-surface-2)' : 'transparent'} stroke={on ? 'var(--color-dram3d)' : 'var(--color-line)'} strokeDasharray={on ? undefined : '3 3'} />
-              <text x={CHIP_W / 2} y={20} textAnchor="middle" fontSize="13" fill={on ? 'var(--color-ink)' : 'var(--color-faint)'}>{on ? t : ''}</text>
+              <rect width={CHIP_W} height={CHIP_H} rx={2} fill={on ? P.dramTint : P.paper} stroke={on ? P.dram : P.rule} strokeDasharray={on ? undefined : '3 3'} />
+              <text x={CHIP_W / 2} y={20} textAnchor="middle" fontSize="15" fontStyle="italic" style={{ fontFamily: 'var(--font-serif)' }} fill={P.ink}>{on ? t : ''}</text>
             </g>
             {on && i === latest && step === 2 && (
-              <circle cx={x + CHIP_W / 2} cy={y + CHIP_H + 4} r={5} fill="var(--color-dram3d)"
+              <circle cx={x + CHIP_W / 2} cy={y + CHIP_H + 4} r={4} fill={P.dram}
                 style={{ animation: 'trip 1.1s ease-in-out infinite', ['--trip-dist' as string]: `${MEM_Y - y - CHIP_H - 12}px` }} />
             )}
           </g>
@@ -71,12 +72,12 @@ function Visual({ step, progress }: SceneState) {
 
       {/* Memory */}
       <g transform={`translate(${narrow ? 10 : 60} ${MEM_Y})`}>
-        <rect width={W - (narrow ? 20 : 120)} height={70} rx={12} fill="var(--color-surface)" stroke={step === 3 ? 'var(--color-dram3d)' : 'var(--color-line)'} className="fade" />
-        <rect x={10} y={40} width={(W - (narrow ? 40 : 140)) * 0.55} height={18} rx={4} fill="var(--color-faint)" opacity={0.6} />
-        <rect x={10 + (W - (narrow ? 40 : 140)) * 0.55 + 4} y={40} width={Math.max(0, ((W - (narrow ? 40 : 140)) * 0.45 - 4) * kvFrac)} height={18} rx={4} fill="var(--color-dram3d)" className="fade" />
-        <text x={14} y={26} className="svg-label">Memory</text>
-        <text x={10 + (W - (narrow ? 40 : 140)) * 0.55 - 4} y={26} textAnchor="end" fontSize="11" fill="var(--color-muted)">model weights</text>
-        <text x={W - (narrow ? 30 : 130)} y={26} textAnchor="end" fontSize="11" fill="var(--color-dram3d)">KV cache (grows)</text>
+        <rect width={W - (narrow ? 20 : 120)} height={70} rx={2} fill={P.plate} stroke={P.ink} strokeWidth={step === 3 ? 2 : 1} className="fade" />
+        <rect x={10} y={40} width={(W - (narrow ? 40 : 140)) * 0.55} height={18} fill={P.logicDark} />
+        <rect x={10 + (W - (narrow ? 40 : 140)) * 0.55 + 4} y={40} width={Math.max(0, ((W - (narrow ? 40 : 140)) * 0.45 - 4) * kvFrac)} height={18} fill={P.dram} className="fade" />
+        <text x={14} y={26} fontSize="13" fontWeight={600} fill={P.ink}>Memory</text>
+        <text x={10 + (W - (narrow ? 40 : 140)) * 0.55 - 4} y={26} textAnchor="end" fontSize="11" fill={P.ink2}>model weights</text>
+        <text x={W - (narrow ? 30 : 130)} y={26} textAnchor="end" fontSize="11" fill={P.dram}>KV cache, growing</text>
       </g>
     </svg>
   );
@@ -86,7 +87,8 @@ export function S01PrefillDecode() {
   return (
     <Scene
       id="phases"
-      kicker="1 · Two phases"
+      num={1}
+      kicker="Two phases"
       title="Reading the prompt is a burst. Writing the reply is a slog."
       steps={[
         <p key="a">When you send a prompt, a language model does two very different jobs: it first <strong>reads</strong> your prompt, then <strong>writes</strong> a reply one <Term k="token">token</Term> at a time.</p>,
@@ -103,6 +105,11 @@ export function S01PrefillDecode() {
           : 'Diagram: reply tokens appear one at a time; each one draws its own dashed line down to memory, and a counter of memory trips rises. The KV cache bar in memory grows with each token.'
       }
       visual={(s) => <Visual {...s} />}
+      figure={(s) => ({
+        caption: s.step < 2
+          ? <>Prefill: every prompt token is processed at once, in one trip to memory.</>
+          : <>Decode: each new token is its own trip to memory, and the conversation’s KV cache grows with each one. Illustration.</>,
+      })}
     />
   );
 }

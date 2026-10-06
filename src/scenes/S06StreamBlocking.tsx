@@ -5,8 +5,9 @@ import { Term } from '../components/ui';
 import { BANK_BUDGET as BB, BANKS_SHORT, LAYER_EXAMPLE as LX, STREAM_BLOCKING as SB } from '../data/paper';
 import { TOY } from '../data/illustrative';
 import { fmt } from '../lib/fmt';
+import { P, CHUNK_INKS } from '../lib/palette';
 
-const CHUNK_COLORS = ['#3fd6a4', '#f2b84b', '#c6a0f6', '#5aa9f0', '#ff8f6b', '#9be27a'];
+const CHUNK_COLORS = CHUNK_INKS;
 const PIECES = BB.chunkBytes / BB.bytesPerBankRead; // 4 pieces of 32 B per 128 B chunk (derived from Sec IV-C numbers)
 const BANKS = BB.banksPerChannel;
 
@@ -24,23 +25,23 @@ function Budget({ step }: { step: number }) {
     });
   }, []);
   const rows = Math.ceil(BB.banksNeeded / cols);
-  const P = 12;
+  const PX = 12;
   return (
-    <svg viewBox={`0 0 ${cols * P} ${rows * P + 64}`} className="h-full w-full" aria-hidden>
+    <svg viewBox={`0 0 ${cols * PX} ${rows * PX + 40}`} className="h-full w-full" aria-hidden>
       {cells.map((c, i) => {
-        const x = (i % cols) * P, y = Math.floor(i / cols) * P;
+        const x = (i % cols) * PX, y = Math.floor(i / cols) * PX;
         let fill = 'transparent', stroke = 'var(--color-faint)', dash: string | undefined;
         if (step >= 1) {
           if (!c.real) { stroke = 'var(--color-danger)'; dash = '2 2'; }
-          else { fill = '#2c6b58'; stroke = 'transparent'; }
+          else { fill = P.dramTint; stroke = 'transparent'; }
         }
         if (step >= 2 && c.real) {
           if (c.spare) fill = 'var(--color-spare)';
-          else fill = c.trio % 2 ? '#2aa983' : '#3fd6a4';
+          else fill = c.trio % 2 ? P.dram : P.dramMid;
         }
-        return <rect key={i} x={x + 1} y={y + 1} width={P - 2} height={P - 2} rx={2} fill={fill} stroke={stroke} strokeDasharray={dash} className="fade" />;
+        return <rect key={i} x={x + 1} y={y + 1} width={PX - 2} height={PX - 2} rx={0.5} fill={fill} stroke={stroke} strokeDasharray={dash} className="fade" />;
       })}
-      <g transform={`translate(0 ${rows * P + 22})`} fontSize="13">
+      <g transform={`translate(0 ${rows * PX + 24})`} fontSize="14">
         {step === 0 && <text className="svg-num" fill="var(--color-ink)">{BB.channelsPerChiplet} channels × {BB.banksPerChannelIdeal} banks = {fmt(BB.banksNeeded)} banks needed</text>}
         {step === 1 && <text className="svg-num" fill="var(--color-ink)">{BB.banksOnDie} on the die · <tspan fill="var(--color-danger)">{BANKS_SHORT} short</tspan></text>}
         {step >= 2 && (
@@ -48,7 +49,6 @@ function Budget({ step }: { step: number }) {
             <tspan fill="var(--color-spare)">{BB.spares} spares</tspan> · {BB.usable} usable = {BB.channelsPerChiplet} × <tspan fill="var(--color-dram3d)">{BANKS}</tspan>
           </text>
         )}
-        <text y="22" fontSize="11" fill="var(--color-muted)">one square = one bank · Source: Sec IV-C</text>
       </g>
     </svg>
   );
@@ -85,7 +85,7 @@ function Channel({ step, mode, chunk }: { step: number; mode: 'naive' | 'blocked
   const readCols = [...new Set(mine.map((p) => p.col))];
   return (
     <svg viewBox="0 0 420 360" className="h-full w-full" aria-hidden>
-      <text x={X0} y={20} className="svg-label">one channel = {BANKS} banks · each square = {BB.bytesPerBankRead} B</text>
+      <text x={X0} y={20} className="svg-label">one channel: {BANKS} banks, each square {BB.bytesPerBankRead} B</text>
       {Array.from({ length: BANKS }, (_, b) => (
         <g key={b}>
           <text x={X0 - 10} y={Y0 + b * (CH + 6) + 20} textAnchor="end" fontSize="11" fill="var(--color-muted)">bank {b}</text>
@@ -93,7 +93,7 @@ function Channel({ step, mode, chunk }: { step: number; mode: 'naive' | 'blocked
             const p = items.find((q) => q.bank === b && q.col === c);
             const hot = step === 3 ? c === 0 : readCols.includes(c);
             return (
-              <rect key={c} x={X0 + c * CW} y={Y0 + b * (CH + 6)} width={CW - 4} height={CH} rx={4}
+              <rect key={c} x={X0 + c * CW} y={Y0 + b * (CH + 6)} width={CW - 4} height={CH} rx={1}
                 fill={p ? CHUNK_COLORS[p.chunk % CHUNK_COLORS.length] : step === 3 && c === 0 ? 'var(--color-dram3d)' : 'var(--color-surface-2)'}
                 opacity={p ? (p.chunk === cur ? 1 : 0.28) : 1}
                 stroke={hot ? 'var(--color-ink)' : 'transparent'} strokeWidth={1.5} className="fade" />
@@ -111,7 +111,7 @@ function Channel({ step, mode, chunk }: { step: number; mode: 'naive' | 'blocked
           <text className="svg-label" y="22">one chunk = <tspan className="svg-num" fill="var(--color-ink)">{BB.chunkBytes} B</tspan></text>
           {Array.from({ length: PIECES }, (_, k) => (
             <g key={k} transform={`translate(${k * 44} 40)`}>
-              <rect width={40} height={34} rx={4} fill={k < BANKS ? 'var(--color-dram3d)' : 'transparent'} stroke={k < BANKS ? 'transparent' : 'var(--color-danger)'} strokeDasharray="3 3" />
+              <rect width={40} height={34} rx={1} fill={k < BANKS ? 'var(--color-dram3d)' : 'transparent'} stroke={k < BANKS ? 'transparent' : 'var(--color-danger)'} strokeDasharray="3 3" />
               {k >= BANKS && <text x={20} y={22} textAnchor="middle" fill="var(--color-danger)" fontSize="15">?</text>}
             </g>
           ))}
@@ -125,7 +125,7 @@ function Channel({ step, mode, chunk }: { step: number; mode: 'naive' | 'blocked
           <g style={{ animation: 'shuffle 0.9s ease-in-out infinite' }}>
             {Array.from({ length: SB.naiveBufferBytes / BB.bytesPerBankRead }, (_, k) => {
               const src = readCols.flatMap((c) => Array.from({ length: BANKS }, (_, b) => items.find((q) => q.bank === b && q.col === c)))[k];
-              return <rect key={k} x={k * 46} y={14} width={42} height={30} rx={4} fill={src ? CHUNK_COLORS[src.chunk % CHUNK_COLORS.length] : 'var(--color-surface-2)'} opacity={src && src.chunk === cur ? 1 : 0.35} />;
+              return <rect key={k} x={k * 46} y={14} width={42} height={30} rx={1} fill={src ? CHUNK_COLORS[src.chunk % CHUNK_COLORS.length] : 'var(--color-surface-2)'} opacity={src && src.chunk === cur ? 1 : 0.35} />;
             })}
           </g>
           <path d="M20 56 C 60 90, 150 70, 190 100 M120 56 C 100 90, 40 80, 60 100 M240 56 C 200 80, 250 90, 150 100" stroke="var(--color-danger)" strokeOpacity="0.6" fill="none" />
@@ -138,7 +138,7 @@ function Channel({ step, mode, chunk }: { step: number; mode: 'naive' | 'blocked
           <text className="svg-label">read 1: leftovers column → <tspan fill="var(--color-ink)">{SB.smallBufferBytes} B cache</tspan></text>
           <text className="svg-label" y="20">read 2: main column ({SB.alignedBytes} B) + one {SB.partialBytes} B leftover</text>
           {Array.from({ length: PIECES }, (_, k) => (
-            <rect key={k} x={k * 46} y={38} width={42} height={30} rx={4} fill={CHUNK_COLORS[cur % CHUNK_COLORS.length]} opacity={k < BANKS ? 1 : 0.7} stroke={k >= BANKS ? 'var(--color-ink)' : 'transparent'} strokeDasharray="3 2" />
+            <rect key={k} x={k * 46} y={38} width={42} height={30} rx={1} fill={CHUNK_COLORS[cur % CHUNK_COLORS.length]} opacity={k < BANKS ? 1 : 0.7} stroke={k >= BANKS ? 'var(--color-ink)' : 'transparent'} strokeDasharray="3 2" />
           ))}
           <text y="92" fontSize="12" fill="var(--color-muted)">= one {BB.chunkBytes} B chunk · same {BB.readsPerChunk} reads, every time</text>
         </g>
@@ -159,19 +159,19 @@ function LayerExample() {
     <svg viewBox="0 0 420 360" className="h-full w-full" aria-hidden>
       {rows.map((r, i) => (
         <g key={i} transform={`translate(20 ${40 + i * 70})`}>
-          <rect width="250" height="44" rx="8" fill="var(--color-surface-2)" stroke="var(--color-line)" />
+          <rect width="250" height="44" rx="1" fill="var(--color-bg)" stroke="var(--color-ink)" />
           <text x="14" y="27" fontSize="13" fill="var(--color-muted)">{r}</text>
           {i < rows.length - 1 && <path d="M125 48 v16" stroke="var(--color-faint)" markerEnd="url(#lx-ah)" />}
         </g>
       ))}
       <g transform="translate(310 30)">
-        <rect width="70" height="280" rx="6" fill="var(--color-surface-2)" stroke="var(--color-line)" />
-        <rect y={280 - 280 * rowsFrac} width="70" height={280 * rowsFrac} rx="4" fill="var(--color-dram3d)" />
+        <rect width="70" height="280" rx="1" fill="var(--color-surface)" stroke="var(--color-ink)" />
+        <rect y={280 - 280 * rowsFrac} width="70" height={280 * rowsFrac} fill="var(--color-dram3d)" />
         <text x="35" y="-10" textAnchor="middle" fontSize="11" fill="var(--color-muted)">one bank</text>
         <text x="35" y="300" textAnchor="middle" fontSize="11" className="svg-num" fill="var(--color-dram3d)">~{LX.rowsUsed} / {fmt(LX.rowsTotal)} rows</text>
       </g>
       <text x="20" y="270" fontSize="13" fill="var(--color-ink)">Fills {LX.fillLabel} of each bank.</text>
-      <text x="20" y="292" fontSize="11" fill="var(--color-muted)">Source: Sec III-E</text>
+      
       <defs><marker id="lx-ah" viewBox="0 0 6 6" refX="3" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L6 0 L3 6 Z" fill="var(--color-faint)" /></marker></defs>
     </svg>
   );
@@ -191,9 +191,9 @@ function Visual({ step, progress }: SceneState) {
       <div className="min-h-0 flex-1"><Channel step={step} mode={effMode} chunk={chunk} /></div>
       {step >= 4 && (
         <div className="flex flex-wrap items-center gap-2 pb-1">
-          <div role="group" aria-label="Layout" className="flex gap-1">
+          <div role="group" aria-label="Layout" className="flex">
             <button className="chip-btn" aria-pressed={effMode === 'naive'} onClick={() => setMode('naive')}>Naive shuffle</button>
-            <button className="chip-btn" aria-pressed={effMode === 'blocked'} onClick={() => setMode('blocked')}>Stream blocking</button>
+            <button className="chip-btn -ml-px" aria-pressed={effMode === 'blocked'} onClick={() => setMode('blocked')}>Stream blocking</button>
           </div>
           <button className="chip-btn" onClick={() => setExtra((e) => e + 1)}>Next chunk →</button>
         </div>
@@ -206,7 +206,9 @@ export function S06StreamBlocking() {
   return (
     <Scene
       id="stream-blocking"
-      kicker={<><ProblemChips active={0} /><span className="block">6 · Problem 1: stream blocking</span></>}
+      num={6}
+      kicker="Problem 1 · Stream blocking"
+      eyebrow={<ProblemChips active={0} />}
       title="An awkward number of banks."
       steps={[
         <p key="0">Each tensor engine takes data in <Term k="chunk">chunks</Term> of <strong className="num">{BB.chunkBytes} bytes</strong>. A bank hands over <strong className="num">{BB.bytesPerBankRead} bytes</strong> per read, so the tidy design is {BB.banksPerChannelIdeal} banks per channel. With <strong className="num">{BB.channelsPerChiplet}</strong> channels per chiplet, that’s <strong className="num">{fmt(BB.banksNeeded)}</strong> banks.</p>,
@@ -230,6 +232,11 @@ export function S06StreamBlocking() {
         `One layer's ${LX.layerMB} MB KV cache becomes ${LX.tiles} tiles of ${LX.tileKB} KB, ${LX.tilesPerChannel} per channel, filling about ${LX.rowsUsed} of ${LX.rowsTotal} rows in each bank.`,
       ][Math.min(s.step, 6)]}
       visual={(s) => <Visual {...s} />}
+      figure={(s) => ({
+        caption: s.step <= 2 ? <>Each square is one DRAM bank on a chiplet. Source: Sec IV-C.</>
+          : s.step >= 6 ? <>The paper’s worked example: one attention layer’s KV cache, laid out with stream blocking. Source: Sec III-E.</>
+            : <>One channel of {BB.banksPerChannel} banks. Colors tell chunks apart; outlined columns are the ones read for the highlighted chunk. Illustration of Sec IV-C.</>,
+      })}
     />
   );
 }

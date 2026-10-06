@@ -1,16 +1,28 @@
 import { CITATION as C } from '../data/paper';
+import { Badge } from './ui';
 
 export function Footer() {
   return (
-    <footer className="border-t border-line px-4 py-14 text-sm text-muted lg:px-12">
-      <div className="mx-auto max-w-[900px] space-y-4">
-        <p className="kicker">Source</p>
-        <p className="text-ink">
-          {C.authors.join(', ')}. “{C.title}.” <em>{C.venue}</em>, {C.year}, pp. {C.pages}. DOI:{' '}
-          <a className="underline decoration-faint underline-offset-2 hover:text-ink" href={`https://doi.org/${C.doi}`}>{C.doi}</a>
-        </p>
-        <p>Affiliations: {C.affiliations.join(' · ')}. <a className="underline decoration-faint underline-offset-2 hover:text-ink" href={C.pdfUrl}>Read the paper (PDF)</a>.</p>
-        <p>This site is an independent explainer. It is not affiliated with or endorsed by d-Matrix. All illustrations and text are original. Numbers come from the paper unless marked <span className="badge badge-derived !py-0">Derived</span>. Badges mark which results were <span className="badge badge-measured !py-0">Measured</span> on silicon and which were <span className="badge badge-modeled !py-0">Modeled</span>.</p>
+    <footer className="px-4 pb-20 pt-10 sm:px-6 lg:px-12">
+      <div className="mx-auto grid max-w-[1100px] gap-10 border-t-[1.5px] border-ink pt-8 lg:grid-cols-[1fr_1fr]">
+        <div>
+          <p className="kicker">Source</p>
+          <p className="mt-3 text-[1.05rem] leading-relaxed">
+            {C.authors.join(', ')}. “{C.title}.” <em>{C.venue}</em>, {C.year}, pp. {C.pages}.{' '}
+            <a href={`https://doi.org/${C.doi}`}>doi:{C.doi}</a>
+          </p>
+          <p className="sans mt-3 text-sm text-muted">{C.affiliations.join(' · ')} · <a href={C.pdfUrl}>Read the paper (PDF)</a></p>
+        </div>
+        <div className="sans text-sm leading-relaxed text-muted">
+          <p className="kicker">About this page</p>
+          <p className="mt-3">An independent explainer, not affiliated with or endorsed by d-Matrix. The text and illustrations are original. Every number comes from the paper, and each figure is marked by where its numbers come from:</p>
+          <ul className="mt-3 space-y-1">
+            <li><Badge kind="measured" />: measured on the chip</li>
+            <li><Badge kind="modeled" />: from the paper’s models</li>
+            <li><Badge kind="derived" />: arithmetic we did on the paper’s numbers</li>
+          </ul>
+          <p className="mt-4">Set in Newsreader and IBM Plex Sans.</p>
+        </div>
       </div>
     </footer>
   );

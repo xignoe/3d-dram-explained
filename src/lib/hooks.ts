@@ -1,7 +1,8 @@
 import { useEffect, useState, type RefObject } from 'react';
 
 function useMedia(query: string): boolean {
-  const [match, setMatch] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
+  // Start false on both server and client so prerendered HTML hydrates cleanly; the effect corrects it.
+  const [match, setMatch] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia(query);
     const on = () => setMatch(mq.matches);

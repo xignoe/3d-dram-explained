@@ -1,6 +1,7 @@
 import { scaleLog } from 'd3-scale';
 import { Scene, type SceneState } from '../components/Scene';
-import { Badge, Chef, MEM_COLOR, Note, Src, Term } from '../components/ui';
+import { Chef, MEM_COLOR, Note, Term } from '../components/ui';
+import { P } from '../lib/palette';
 import { KV_INTRO, MEMORY, XPU_PFLOPS, fullMemoryReadsPerSecond, type MemoryId } from '../data/paper';
 import { fmt } from '../lib/fmt';
 import { useDesktop } from '../lib/hooks';
@@ -17,13 +18,13 @@ function Scatter({ step, W }: { step: number; W: number }) {
     <g>
       {x.ticks().filter(pow10).map((t) => (
         <g key={t}>
-          <line x1={x(t)} x2={x(t)} y1={M.t} y2={H - M.b} stroke="var(--color-line)" />
+          <line x1={x(t)} x2={x(t)} y1={M.t} y2={H - M.b} stroke={P.rule} strokeDasharray="2 3" />
           <text x={x(t)} y={H - M.b + 18} textAnchor="middle" className="svg-label svg-num">{fmt(t)}</text>
         </g>
       ))}
       {y.ticks().filter(pow10).map((t) => (
         <g key={t}>
-          <line x1={M.l} x2={W - M.r} y1={y(t)} y2={y(t)} stroke="var(--color-line)" />
+          <line x1={M.l} x2={W - M.r} y1={y(t)} y2={y(t)} stroke={P.rule} strokeDasharray="2 3" />
           <text x={M.l - 8} y={y(t) + 4} textAnchor="end" className="svg-label svg-num">{fmt(t)}</text>
         </g>
       ))}
@@ -37,10 +38,10 @@ function Scatter({ step, W }: { step: number; W: number }) {
         const dx = id === 'hbm' ? -14 : 14;
         return (
           <g key={id} className="fade" opacity={on ? 1 : 0}>
-            <circle cx={cx} cy={cy} r={step === i ? 11 : 8} fill={MEM_COLOR[id]} className="fade" />
-            <text x={cx + dx} y={cy - 6} textAnchor={anchor} fontSize="15" fontWeight={600} fill={MEM_COLOR[id]}>{m.label}</text>
-            <text x={cx + dx} y={cy + 12} textAnchor={anchor} fontSize="12" className="svg-num" fill="var(--color-ink)">{m.bandwidthTBs} TB/s · {m.capacityGB} GB</text>
-            {W >= 600 && <text x={cx + dx} y={cy + 28} textAnchor={anchor} fontSize="11" fontStyle="italic" fill="var(--color-muted)">{CHEF[id]}</text>}
+            <circle cx={cx} cy={cy} r={step === i ? 9 : 7} fill={MEM_COLOR[id]} stroke={P.paper} strokeWidth={2} className="fade" />
+            <text x={cx + dx} y={cy - 6} textAnchor={anchor} fontSize="17" fontWeight={500} style={{ fontFamily: 'var(--font-serif)' }} fill={MEM_COLOR[id]}>{m.label}</text>
+            <text x={cx + dx} y={cy + 12} textAnchor={anchor} fontSize="12" className="svg-num" fill={P.ink}>{m.bandwidthTBs} TB/s · {m.capacityGB} GB</text>
+            {W >= 600 && <text x={cx + dx} y={cy + 28} textAnchor={anchor} fontSize="11" fontStyle="italic" style={{ fontFamily: 'var(--font-serif)' }} fill={P.ink2}>{CHEF[id]}</text>}
           </g>
         );
       })}
@@ -50,23 +51,23 @@ function Scatter({ step, W }: { step: number; W: number }) {
 
 function Bars({ W }: { W: number }) {
   const sorted = [...ORDER].sort((a, b) => fullMemoryReadsPerSecond(b) - fullMemoryReadsPerSecond(a));
-  const x = scaleLog().domain([10, 100000]).range([M.l + 40, W - M.r - 70]);
+  const x = scaleLog().domain([10, 100000]).range([M.l + 40, W - M.r - 135]);
   const rowH = 74;
   return (
     <g>
-      <text x={M.l - 40} y={44} className="svg-label">Full-memory reads per second, per card</text>
+
       {sorted.map((id, i) => {
         const v = fullMemoryReadsPerSecond(id);
         const yy = 90 + i * rowH;
         return (
           <g key={id}>
-            <text x={M.l - 40} y={yy + 20} fontSize="14" fontWeight={600} fill={MEM_COLOR[id]}>{MEMORY[id].label}</text>
-            <rect x={x(10)} y={yy + 30} width={x(v) - x(10)} height={22} rx={5} fill={MEM_COLOR[id]} className="fade" />
-            <text x={x(v) + 8} y={yy + 46} fontSize="14" className="svg-num" fill="var(--color-ink)">{fmt(v, 0)}×/s</text>
+            <text x={M.l - 40} y={yy + 20} fontSize="17" fontWeight={500} style={{ fontFamily: 'var(--font-serif)' }} fill={MEM_COLOR[id]}>{MEMORY[id].label}</text>
+            <rect x={x(10)} y={yy + 30} width={x(v) - x(10)} height={20} fill={MEM_COLOR[id]} className="fade" />
+            <text x={x(v) + 8} y={yy + 46} fontSize="14" className="svg-num" fill={P.ink}>{fmt(v, 0)} times a second</text>
           </g>
         );
       })}
-      <text x={M.l - 40} y={H - 30} fontSize="11" fill="var(--color-muted)">= bandwidth ÷ capacity, log scale. Our arithmetic on Table III.</text>
+
     </g>
   );
 }
@@ -75,8 +76,7 @@ function Visual({ step }: SceneState) {
   const W = useDesktop() ? 600 : 380;
   const bars = step >= 3;
   return (
-    <div className="panel relative h-full p-2 lg:p-4">
-      <div className="absolute right-3 top-3 z-10">{bars ? <Badge kind="derived" /> : <Src>Table III</Src>}</div>
+    <div className="relative h-full">
       <svg viewBox={`0 0 ${W} ${H}`} className="h-full w-full" aria-hidden>
         <g className="fade" opacity={bars ? 0 : 1}><Scatter step={step} W={W} /></g>
         <g className="fade" opacity={bars ? 1 : 0}>{bars && <Bars W={W} />}</g>
@@ -90,11 +90,12 @@ export function S03Pantry() {
   return (
     <Scene
       id="pantry"
-      kicker="3 · Three kinds of pantry"
+      num={3}
+      kicker="Three kinds of pantry"
       title="Fast or big: today’s memory makes you choose."
       steps={[
         <>
-          <p key="a"><strong style={{ color: MEM_COLOR.sram }}>SRAM</strong> sits on the processor itself. It is blazingly fast ({sram.bandwidthTBs} TB/s per card in the paper’s comparison), but tiny: just <strong className="num">{sram.capacityGB} GB</strong>. The paper’s Llama-class example, with {KV_INTRO.weightsGB} GB of weights, would have to be spread across many cards.</p>
+          <p key="a"><strong className="text-sram-ink">SRAM</strong> sits on the processor itself. It is blazingly fast ({sram.bandwidthTBs} TB/s per card in the paper’s comparison), but tiny: just <strong className="num">{sram.capacityGB} GB</strong>. The paper’s Llama-class example, with {KV_INTRO.weightsGB} GB of weights, would have to be spread across many cards.</p>
           <Chef>SRAM is a countertop: everything within arm’s reach, but there’s barely room for anything.</Chef>
         </>,
         <>
@@ -116,6 +117,9 @@ export function S03Pantry() {
           : `Derived bar chart, bandwidth divided by capacity: SRAM about ${fmt(fullMemoryReadsPerSecond('sram'), 0)} full reads per second, 3D-DRAM about ${fmt(fullMemoryReadsPerSecond('dram3d'), 0)}, HBM about ${fmt(fullMemoryReadsPerSecond('hbm'), 0)}.`
       }
       visual={(s) => <Visual {...s} />}
+      figure={(s) => s.step < 3
+        ? { caption: <>Memory bandwidth against capacity per card, both on log scales. All three pair with the same {XPU_PFLOPS} PFLOPS compute logic. Source: Table III.</> }
+        : { evidence: 'derived', caption: <>How many times per second each card could read through its entire memory: bandwidth ÷ capacity, log scale. Our arithmetic on Table III, not a result from the paper.</> }}
     />
   );
 }

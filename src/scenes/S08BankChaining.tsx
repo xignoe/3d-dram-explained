@@ -5,8 +5,9 @@ import { Note, Term } from '../components/ui';
 import { BANK_CHAINING as BC, BANK_BUDGET } from '../data/paper';
 import { TOY } from '../data/illustrative';
 import { numberWord } from '../lib/fmt';
+import { P } from '../lib/palette';
 
-const CH_COLORS = ['#3fd6a4', '#2a9d7b'];
+const CH_COLORS = [P.dram, P.dramDeep];
 
 function scriptedFaults(step: number): number[] {
   if (step >= 1 && step <= 3) return TOY.scriptedFaults.slice(0, step);
@@ -40,16 +41,16 @@ function Visual({ step }: SceneState) {
   };
 
   return (
-    <div className="flex h-full flex-col justify-center gap-4 lg:gap-6">
+    <div className="flex h-full flex-col justify-center-safe gap-4 lg:gap-6">
       <div className="flex items-center justify-between gap-2">
-        <p className={`text-sm font-medium lg:text-base ${ok ? 'text-dram3d' : 'text-danger'}`} aria-live="polite">
-          {ok ? `All ${BC.channels} channels intact and identical` : `Only ${formed} of ${BC.channels} channels can form`}
-          <span className="ml-2 text-muted">· {faults.size} faulty</span>
+        <p className={`font-serif text-xl italic leading-snug lg:text-2xl ${ok ? 'text-dram3d' : 'text-danger'}`} aria-live="polite">
+          {ok ? `All ${BC.channels} channels intact and identical.` : `Only ${formed} of ${BC.channels} channels can form.`}
+          <span className="sans ml-2 text-sm not-italic text-muted">{faults.size} faulty</span>
         </p>
         <button className="chip-btn" onClick={() => setManual([])}>Reset</button>
       </div>
 
-      <div className="text-xs text-muted">One chain: {BC.functional} banks + {BC.redundant} spares. Tap any bank to break it.</div>
+      <div className="sans text-xs text-muted">One chain: {BC.functional} banks plus {BC.redundant} spares. Tap any bank to break it.</div>
       <div className="grid gap-1 [grid-template-columns:repeat(var(--half),minmax(0,1fr))] lg:[grid-template-columns:repeat(var(--full),minmax(0,1fr))]"
         style={{ ['--half' as string]: Math.ceil(BC.chainLength / 2), ['--full' as string]: BC.chainLength }}>
         {Array.from({ length: BC.chainLength }, (_, i) => {
@@ -63,8 +64,8 @@ function Visual({ step }: SceneState) {
               onClick={() => toggle(i)}
               aria-pressed={bad}
               aria-label={`Bank ${i + 1}: ${bad ? 'faulty' : idle ? 'unused spare' : `in channel ${(ch ?? 0) + 1}`}. Toggle fault.`}
-              className="fade relative flex aspect-[3/5] flex-col items-center justify-end rounded-md border pb-1 text-[0.65rem] font-semibold"
-              style={{ background: bg, borderColor: bad ? 'var(--color-danger)' : idle ? 'var(--color-spare)' : 'transparent', color: bad ? 'var(--color-danger)' : idle ? 'var(--color-spare)' : 'var(--color-bg)' }}
+              className="fade sans relative flex aspect-[3/5] flex-col items-center justify-end border pb-1 text-[0.65rem] font-medium"
+              style={{ background: bad ? P.paper : bg, borderColor: bad ? P.danger : idle ? P.spare : P.ink, borderStyle: idle ? 'dashed' : 'solid', color: bad ? P.danger : idle ? P.spareInk : P.paper }}
             >
               {bad ? <span className="absolute inset-0 grid place-items-center text-lg">×</span> : idle ? 'sp' : `C${(ch ?? 0) + 1}`}
             </button>
@@ -73,11 +74,11 @@ function Visual({ step }: SceneState) {
       </div>
 
       <div>
-        <div className="mb-1 text-xs text-muted">Channels presented to the tensor engines</div>
+        <div className="sans mb-1.5 text-xs text-muted">Channels presented to the tensor engines</div>
         <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${BC.channels}, minmax(0, 1fr))` }}>
           {Array.from({ length: BC.channels }, (_, k) => (
-            <div key={k} className="fade rounded-md border px-1 py-2 text-center text-[0.7rem]"
-              style={{ borderColor: k < formed ? 'var(--color-dram3d)' : 'var(--color-danger)', color: k < formed ? 'var(--color-dram3d)' : 'var(--color-danger)' }}>
+            <div key={k} className="fade sans border-t-2 px-1 py-1.5 text-center text-[0.75rem]"
+              style={{ borderColor: k < formed ? P.dram : P.danger, color: k < formed ? P.dram : P.danger }}>
               C{k + 1}<div className="text-[0.6rem] text-muted">{k < formed ? `${BC.banksPerChannel} banks` : 'broken'}</div>
             </div>
           ))}
@@ -91,7 +92,9 @@ export function S08BankChaining() {
   return (
     <Scene
       id="bank-chaining"
-      kicker={<><ProblemChips active={2} /><span className="block">8 · Problem 3: bank chaining</span></>}
+      num={8}
+      kicker="Problem 3 · Bank chaining"
+      eyebrow={<ProblemChips active={2} />}
       title="Some banks will be broken. Plan for it."
       steps={[
         <>
@@ -108,6 +111,7 @@ export function S08BankChaining() {
       ]}
       description={() => `Interactive: a row of ${BC.chainLength} bank tiles, ${BC.functional} regular and ${BC.redundant} spare, grouped into ${BC.channels} channels of ${BC.banksPerChannel}. Tapping a tile marks it faulty; channels shift past faulty banks. Up to ${BC.maxFaults} faults keep all ${BC.channels} channels intact; a third breaks one.`}
       visual={(s) => <Visual {...s} />}
+      figure={() => ({ caption: <>One chain from the paper’s example: {BC.functional} banks and {BC.redundant} spares forming {BC.channels} channels of {BC.banksPerChannel}. Dashed tiles are unused spares. Interactive. Source: Sec IV-E, Fig. 8.</> })}
     />
   );
 }

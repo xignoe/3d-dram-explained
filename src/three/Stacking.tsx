@@ -1,6 +1,8 @@
 import { useMemo, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Edges } from '@react-three/drei';
 import * as THREE from 'three';
+import { P } from '../lib/palette';
 import { TOY } from '../data/illustrative';
 
 /**
@@ -22,10 +24,11 @@ function useParticles(count: number) {
 
 function Rig({ mixRef }: { mixRef: { current: number } }) {
   const { camera } = useThree();
-  useFrame(() => {
+  useFrame((_, dt) => {
     const m = mixRef.current;
-    tmp.set(THREE.MathUtils.lerp(0, 4.6, m), THREE.MathUtils.lerp(4.6, 2.5, m), THREE.MathUtils.lerp(8.8, 5.6, m));
-    camera.position.lerp(tmp, 0.08);
+    const k = 1 - Math.exp(-dt * 5);
+    tmp.set(THREE.MathUtils.lerp(0, 4.6, m), THREE.MathUtils.lerp(5.6, 2.5, m), THREE.MathUtils.lerp(11, 5.6, m));
+    camera.position.lerp(tmp, k);
     camera.lookAt(0, THREE.MathUtils.lerp(0.1, 0.45, m), 0);
   });
   return null;
@@ -35,10 +38,10 @@ function World({ target }: { target: number }) {
   const mixRef = useRef(target);
   const logic = useRef<THREE.Mesh>(null);
   const dram = useRef<THREE.Mesh>(null);
-  const dramMat = useRef<THREE.MeshStandardMaterial>(null);
+  const dramMat = useRef<THREE.MeshLambertMaterial>(null);
   const hbmL = useRef<THREE.Group>(null);
   const hbmR = useRef<THREE.Group>(null);
-  const hbmMaterial = useMemo(() => new THREE.MeshStandardMaterial({ color: '#5aa9f0', transparent: true, roughness: 0.5 }), []);
+  const hbmMaterial = useMemo(() => new THREE.MeshLambertMaterial({ color: P.hbmTint, transparent: true }), []);
   const edgeMat = useRef<THREE.MeshBasicMaterial>(null);
   const ptsA = useRef<THREE.Points>(null);
   const ptsB = useRef<THREE.Points>(null);
@@ -47,7 +50,7 @@ function World({ target }: { target: number }) {
   const clock = useRef(0);
 
   useFrame((_, dt) => {
-    mixRef.current = THREE.MathUtils.lerp(mixRef.current, target, 0.07);
+    mixRef.current = THREE.MathUtils.lerp(mixRef.current, target, 1 - Math.exp(-dt * 4));
     const m = mixRef.current;
     clock.current += dt * TOY.particleSpeed;
     const t = clock.current;
@@ -98,6 +101,7 @@ function World({ target }: { target: number }) {
       {[0, 1, 2, 3].map((k) => (
         <mesh key={k} position={[0, 0.1 + k * 0.17, 0]} material={hbmMaterial}>
           <boxGeometry args={[1.05, 0.14, 1.5]} />
+          <Edges color={P.hbm} />
         </mesh>
       ))}
     </>
@@ -109,7 +113,8 @@ function World({ target }: { target: number }) {
       {/* substrate */}
       <mesh position={[0, -0.08, 0]}>
         <boxGeometry args={[9, 0.08, 3.6]} />
-        <meshStandardMaterial color="#141924" roughness={0.9} />
+        <meshLambertMaterial color={P.board} />
+        <Edges color={P.ink3} />
       </mesh>
       <group ref={hbmL}>{stack}</group>
       <group ref={hbmR}>{stack}</group>
@@ -117,24 +122,25 @@ function World({ target }: { target: number }) {
       {[-1, 1].map((side) => (
         <mesh key={side} position={[side * (DIE / 2 + 0.02), 0.08, 0]}>
           <boxGeometry args={[0.04, 0.06, 1.2]} />
-          <meshBasicMaterial ref={side === 1 ? edgeMat : undefined} color="#5aa9f0" transparent opacity={0.85} />
+          <meshBasicMaterial ref={side === 1 ? edgeMat : undefined} color={P.hbm} transparent opacity={0.85} />
         </mesh>
       ))}
       <mesh ref={dram}>
         <boxGeometry args={[DIE, T, DIE]} />
-        <meshStandardMaterial ref={dramMat} color="#1b5c4a" emissive="#3fd6a4" emissiveIntensity={0.15} transparent opacity={0} roughness={0.5} />
+        <meshLambertMaterial ref={dramMat} color={P.dramTint} transparent opacity={0} />
       </mesh>
       <mesh ref={logic}>
         <boxGeometry args={[DIE, T, DIE]} />
-        <meshStandardMaterial color="#5b657d" metalness={0.35} roughness={0.45} />
+        <meshLambertMaterial color={P.logic} />
+        <Edges color={P.ink} />
       </mesh>
       <points ref={ptsA}>
         <bufferGeometry><bufferAttribute attach="attributes-position" args={[A.pos, 3]} /></bufferGeometry>
-        <pointsMaterial color="#5aa9f0" size={0.06} transparent opacity={1} depthWrite={false} />
+        <pointsMaterial color={P.hbm} size={0.055} transparent opacity={1} depthWrite={false} />
       </points>
       <points ref={ptsB}>
         <bufferGeometry><bufferAttribute attach="attributes-position" args={[B.pos, 3]} /></bufferGeometry>
-        <pointsMaterial color="#3fd6a4" size={0.035} transparent opacity={0} depthWrite={false} />
+        <pointsMaterial color={P.dram} size={0.03} transparent opacity={0} depthWrite={false} />
       </points>
     </>
   );
@@ -142,10 +148,9 @@ function World({ target }: { target: number }) {
 
 export default function Stacking({ mix, active }: Props) {
   return (
-    <Canvas frameloop={active ? 'always' : 'never'} dpr={[1, 1.75]} camera={{ position: [0, 4.4, 6.6], fov: 34 }} gl={{ antialias: true, alpha: true }}>
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[4, 7, 5]} intensity={1.5} />
-      <directionalLight position={[-5, 3, -4]} intensity={0.4} color="#5aa9f0" />
+    <Canvas flat frameloop={active ? 'always' : 'never'} dpr={[1, 2]} camera={{ position: [0, 4.4, 6.6], fov: 34 }} gl={{ antialias: true, alpha: true }}>
+      <ambientLight intensity={1.6} />
+      <directionalLight position={[4, 7, 5]} intensity={1.1} />
       <World target={mix} />
     </Canvas>
   );

@@ -4,6 +4,7 @@ import { Gate3D } from '../components/Gate3D';
 import { Term } from '../components/ui';
 import { HIERARCHY as H } from '../data/paper';
 import { fmt } from '../lib/fmt';
+import { P } from '../lib/palette';
 
 const Zoom3D = lazy(() => import('../three/Zoom'));
 const LEVELS = ['Card', 'MCM', 'Chiplet', 'Gang', 'Slice', 'Bank'] as const;
@@ -27,13 +28,13 @@ function ZoomSvg({ level }: { level: number }) {
     <svg viewBox="0 0 400 320" className="h-full w-full" aria-hidden>
       {level === 0 && (
         <g>
-          <rect x="16" y="90" width="368" height="140" rx="10" fill="#141c28" stroke="var(--color-line)" />
+          <rect x="16" y="90" width="368" height="140" rx="2" fill={P.board} stroke={P.ink} />
           {grid(H.card.mcmsMax).map((i) => {
             const ghost = i >= H.card.mcmsMin;
             return (
               <g key={i} transform={`translate(${34 + i * 88} 120)`}>
-                <rect width="72" height="72" rx="6" fill={ghost ? 'none' : '#20283a'} stroke={ghost ? 'var(--color-faint)' : 'var(--color-logic)'} strokeDasharray={ghost ? '4 4' : undefined} />
-                <text x="36" y="42" textAnchor="middle" fontSize="12" fill={ghost ? 'var(--color-faint)' : 'var(--color-ink)'}>{ghost ? 'optional' : 'MCM'}</text>
+                <rect width="72" height="72" rx="2" fill={ghost ? 'none' : P.plate} stroke={ghost ? P.ink3 : P.ink} strokeDasharray={ghost ? '4 4' : undefined} />
+                <text x="36" y="42" textAnchor="middle" fontSize="12" fill={ghost ? P.ink3 : P.ink}>{ghost ? 'optional' : 'MCM'}</text>
               </g>
             );
           })}
@@ -42,33 +43,33 @@ function ZoomSvg({ level }: { level: number }) {
       )}
       {level === 1 && (
         <g transform="translate(90 40)">
-          <rect width="220" height="220" rx="10" fill="#20283a" stroke="var(--color-logic)" />
+          <rect width="220" height="220" rx="2" fill={P.board} stroke={P.ink} />
           {grid(H.mcm.chiplets).map((i) => (
             <g key={i} transform={`translate(${60 + (i % 2) * 54} ${60 + Math.floor(i / 2) * 54})`}>
-              <rect width="46" height="46" rx="3" fill="#1b5c4a" stroke="var(--color-dram3d)" />
+              <rect width="46" height="46" rx="1" fill={P.dramTint} stroke={P.ink} />
             </g>
           ))}
           {grid(H.mcm.lpddrDevices).map((i) => {
             const half = H.mcm.lpddrDevices / 2;
-            return <rect key={i} x={i < half ? 12 : 180} y={22 + (i % half) * 46} width="28" height="38" rx="3" fill="#8a6a2c" />;
+            return <rect key={i} x={i < half ? 12 : 180} y={22 + (i % half) * 46} width="28" height="38" rx="3" fill={P.lpddr} />;
           })}
-          <text x="110" y="200" textAnchor="middle" fontSize="11" fill="var(--color-muted)">chiplets (center) · LPDDR5X (sides)</text>
+          <text x="110" y="200" textAnchor="middle" fontSize="11" fill={P.ink2}>chiplets (center) · LPDDR5X (sides)</text>
         </g>
       )}
       {level === 2 && (
         <g>
           <g transform="translate(24 70)">
-            <rect width="140" height="22" rx="3" fill="#5b657d" />
-            <text x="70" y="15" textAnchor="middle" fontSize="11" fill="var(--color-ink)">logic die</text>
-            {grid(12).map((i) => <line key={i} x1={8 + i * 11.3} x2={8 + i * 11.3} y1="24" y2="40" stroke="#b9c2d6" strokeOpacity="0.6" />)}
-            <rect y="42" width="140" height="22" rx="3" fill="#1b5c4a" stroke="var(--color-dram3d)" />
-            <text x="70" y="57" textAnchor="middle" fontSize="11" fill="var(--color-ink)">3D-DRAM die</text>
+            <rect width="140" height="22" rx="3" fill={P.logic} />
+            <text x="70" y="15" textAnchor="middle" fontSize="11" fill={P.ink}>logic die</text>
+            {grid(12).map((i) => <line key={i} x1={8 + i * 11.3} x2={8 + i * 11.3} y1="24" y2="40" stroke={P.ink3} strokeOpacity="0.6" />)}
+            <rect y="42" width="140" height="22" rx="3" fill={P.dramTint} stroke={P.dram} />
+            <text x="70" y="57" textAnchor="middle" fontSize="11" fill={P.ink}>3D-DRAM die</text>
             <text x="70" y="92" textAnchor="middle" className="svg-label">side view</text>
           </g>
           <g transform="translate(196 40)">
             {grid(H.chiplet.banks).map((i) => {
               const cols = Math.ceil(Math.sqrt(H.chiplet.banks));
-              return <rect key={i} x={(i % cols) * 6.4} y={Math.floor(i / cols) * 6.4} width="5" height="5" fill="var(--color-dram3d)" opacity="0.8" />;
+              return <rect key={i} x={(i % cols) * 6.4} y={Math.floor(i / cols) * 6.4} width="5" height="5" fill={P.dram} opacity="0.8" />;
             })}
             <text x="93" y="215" textAnchor="middle" className="svg-label">DRAM die from above: {fmt(H.chiplet.banks)} banks</text>
           </g>
@@ -78,11 +79,11 @@ function ZoomSvg({ level }: { level: number }) {
         <g transform="translate(80 20)">
           {grid(H.chiplet.gangs).map((i) => (
             <g key={i} transform={`translate(${(i % g) * 124} ${Math.floor(i / g) * 124})`}>
-              <rect width="116" height="116" rx="6" fill={i === 0 ? 'var(--color-surface-2)' : 'transparent'} stroke={i === 0 ? 'var(--color-dram3d)' : 'var(--color-line)'} strokeWidth={i === 0 ? 2 : 1} />
+              <rect width="116" height="116" rx="2" fill={i === 0 ? P.plate : 'transparent'} stroke={i === 0 ? P.dram : P.rule} strokeWidth={i === 0 ? 2 : 1} />
               {grid(H.gang.slices).map((j) => (
-                <rect key={j} x={10 + (j % sl) * 50} y={10 + Math.floor(j / sl) * 50} width="46" height="46" rx="3" fill="none" stroke="var(--color-faint)" />
+                <rect key={j} x={10 + (j % sl) * 50} y={10 + Math.floor(j / sl) * 50} width="46" height="46" rx="3" fill="none" stroke={P.ink3} />
               ))}
-              <text x="58" y="66" textAnchor="middle" fontSize="12" fill={i === 0 ? 'var(--color-ink)' : 'var(--color-faint)'}>gang</text>
+              <text x="58" y="66" textAnchor="middle" fontSize="12" fill={i === 0 ? P.ink : P.ink3}>gang</text>
             </g>
           ))}
           <text x="120" y="270" textAnchor="middle" className="svg-label">logic die from above · small squares are slices</text>
@@ -90,30 +91,30 @@ function ZoomSvg({ level }: { level: number }) {
       )}
       {level === 4 && (
         <g transform="translate(60 14)">
-          <rect width="280" height="160" rx="8" fill="var(--color-surface-2)" stroke="var(--color-dram3d)" />
+          <rect width="280" height="160" rx="2" fill={P.plate} stroke={P.dram} />
           {grid(H.slice.teRows * H.slice.teCols).map((i) => (
-            <rect key={i} x={20 + (i % H.slice.teCols) * 44} y={14 + Math.floor(i / H.slice.teCols) * 30} width="38" height="24" rx="3" fill="#f2d07a" opacity="0.85" />
+            <rect key={i} x={20 + (i % H.slice.teCols) * 44} y={14 + Math.floor(i / H.slice.teCols) * 30} width="38" height="24" rx="3" fill={P.te} opacity="0.85" />
           ))}
-          <text x="98" y="148" textAnchor="middle" fontSize="11" fill="var(--color-muted)">tensor engines</text>
-          <rect x="206" y="14" width="56" height="114" rx="4" fill="#7d8aa6" />
-          <text x="234" y="76" textAnchor="middle" fontSize="11" fill="var(--color-bg)">SIMD</text>
+          <text x="98" y="148" textAnchor="middle" fontSize="11" fill={P.ink2}>tensor engines</text>
+          <rect x="206" y="14" width="56" height="114" rx="2" fill={P.logicDark} />
+          <text x="234" y="76" textAnchor="middle" fontSize="11" fill={P.ink}>SIMD</text>
           {grid(H.slice.channels).map((i) => (
-            <line key={i} x1={14 + i * 16.8} x2={14 + i * 16.8} y1="162" y2="232" stroke="var(--color-dram3d)" strokeWidth="2" opacity="0.85" style={{ animation: 'pulse-soft 1.6s ease-in-out infinite', animationDelay: `${i * 0.08}s` }} />
+            <line key={i} x1={14 + i * 16.8} x2={14 + i * 16.8} y1="162" y2="232" stroke={P.dram} strokeWidth="2" opacity="0.85" style={{ animation: 'pulse-soft 1.6s ease-in-out infinite', animationDelay: `${i * 0.08}s` }} />
           ))}
-          <rect y="234" width="280" height="30" rx="4" fill="#1b5c4a" stroke="var(--color-dram3d)" />
-          <text x="140" y="254" textAnchor="middle" fontSize="11" fill="var(--color-ink)">DRAM directly below · {H.slice.channels} channels</text>
+          <rect y="234" width="280" height="30" rx="2" fill={P.dramTint} stroke={P.dram} />
+          <text x="140" y="254" textAnchor="middle" fontSize="11" fill={P.ink}>DRAM directly below · {H.slice.channels} channels</text>
         </g>
       )}
       {level === 5 && (
         <g transform="translate(70 30)">
           {grid(20 * 26).map((i) => (
-            <rect key={i} x={(i % 26) * 10} y={Math.floor(i / 26) * 11} width="9" height="10" fill={i % 26 === 9 ? 'var(--color-dram3d)' : 'var(--color-surface-2)'} />
+            <rect key={i} x={(i % 26) * 10} y={Math.floor(i / 26) * 11} width="9" height="10" fill={i % 26 === 9 ? P.dram : P.plate} />
           ))}
           <text x="130" y="-8" textAnchor="middle" className="svg-label">{H.bank.columns} columns →</text>
           <text transform="translate(-10 110) rotate(-90)" textAnchor="middle" className="svg-label">{fmt(H.bank.rows)} rows →</text>
-          <line x1="95" x2="95" y1="222" y2="252" stroke="var(--color-dram3d)" strokeWidth="2" />
-          <text x="95" y="268" textAnchor="middle" fontSize="13" className="svg-num" fill="var(--color-dram3d)">{H.bank.bytesPerColumnRead} bytes per column read</text>
-          <text x="262" y="232" textAnchor="end" fontSize="10" fill="var(--color-faint)">(drawn at reduced scale)</text>
+          <line x1="95" x2="95" y1="222" y2="252" stroke={P.dram} strokeWidth="2" />
+          <text x="95" y="268" textAnchor="middle" fontSize="13" className="svg-num" fill={P.dram}>{H.bank.bytesPerColumnRead} bytes per column read</text>
+          <text x="262" y="232" textAnchor="end" fontSize="10" fill={P.ink3}>(drawn at reduced scale)</text>
         </g>
       )}
     </svg>
@@ -125,11 +126,15 @@ function Visual({ step, reduced, inView }: SceneState) {
   const use3D = level <= 2;
   return (
     <div className="flex h-full flex-col gap-2">
-      <nav aria-label="Zoom level" className="flex flex-wrap items-center gap-1 text-xs">
+      <nav aria-label="Zoom level" className="sans flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[0.82rem]">
         {LEVELS.map((l, i) => (
-          <span key={l} className="flex items-center gap-1">
+          <span key={l} className="flex items-center gap-1.5">
             {i > 0 && <span aria-hidden className="text-faint">›</span>}
-            <button className="chip-btn !px-2 !py-0.5" aria-pressed={i === level} aria-current={i === level ? 'step' : undefined} onClick={() => scrollToStep('zoom', i, reduced)}>{l}</button>
+            <button
+              className={i === level ? 'font-semibold text-ink underline decoration-[1.5px] underline-offset-4' : 'text-faint hover:text-ink'}
+              aria-current={i === level ? 'step' : undefined}
+              onClick={() => scrollToStep('zoom', i, reduced)}
+            >{l}</button>
           </span>
         ))}
       </nav>
@@ -142,7 +147,7 @@ function Visual({ step, reduced, inView }: SceneState) {
           <div className="absolute inset-0"><ZoomSvg level={level} /></div>
         )}
       </div>
-      <ul className="panel flex flex-wrap gap-x-5 gap-y-1 px-3 py-2 text-xs text-muted lg:text-sm [&_b]:font-semibold [&_b]:text-ink">
+      <ul className="sans flex flex-wrap gap-x-6 gap-y-1 border-t border-line pt-2 text-xs text-muted lg:text-sm [&_b]:font-semibold [&_b]:text-ink">
         {LEDGER[level].map((f, i) => <li key={i}>{f}</li>)}
       </ul>
     </div>
@@ -153,7 +158,8 @@ export function S05Zoom() {
   return (
     <Scene
       id="zoom"
-      kicker="5 · Powers of ten"
+      num={5}
+      kicker="Powers of ten"
       title="From a whole card down to a single bank."
       steps={[
         <p key="0">Start with the whole thing. One Raptor accelerator card carries <strong className="num">{H.card.mcmsMin} to {H.card.mcmsMax}</strong> <Term k="mcm">multi-chip modules</Term> (MCMs).</p>,
@@ -175,6 +181,7 @@ export function S05Zoom() {
         ][l];
       }}
       visual={(s) => <Visual {...s} />}
+      figure={(s) => ({ caption: <>Raptor’s hierarchy, one level at a time: {LEVELS.slice(0, Math.min(s.step, LEVELS.length - 1) + 1).join(' › ')}. Lower levels are drawn schematically, not to scale. Source: Sec IV-A to IV-C.</> })}
     />
   );
 }

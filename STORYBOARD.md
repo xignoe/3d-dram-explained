@@ -15,10 +15,11 @@ Every number below is a key in `src/data/paper.ts`. Labels used:
 
 | Concern | Decision |
 |---|---|
-| **Palette** | Dark, calm. Tokens live in `src/index.css`. Accents are assigned once and used everywhere: **SRAM = amber**, **HBM = blue**, **3D-DRAM = green**. Neutral greys are used for everything else. Badge colors are separate from the memory colors. |
-| **Badges** | Small pill in each visual's corner. Its text comes from the paper.ts `evidence` value: **Measured** (silicon, Sec V), **Modeled** (Fig. 12 thermal and all of Sec VIII), **Derived** (our arithmetic). Design parameters such as bank counts need no badge. |
+| **Palette** | *Revised after first publish:* paper editorial rather than dark. Warm paper (`#f4efe5`) with near-black ink, hairline rules, and muted print inks for the memory types, used identically everywhere: **SRAM = ochre**, **HBM = slate blue**, **3D-DRAM = green**. Tokens live in `src/index.css` and `src/lib/palette.ts`. |
+| **Typography** | Newsreader (serif, variable optical size) for headlines, body and big numbers; IBM Plex Sans for labels, captions and diagram text. Both self-hosted. Oldstyle figures in prose, lining tabular figures in data. |
+| **Figures** | Every sticky visual is a numbered figure (“Fig. N”) with a heavy top rule, a caption and a source line, like a printed feature. |
+| **Badges** | Typographic marks in the figure heading, explained once in the hero and footer: ■ Measured on silicon (Sec V), □ Modeled (Fig. 12 thermal and all of Sec VIII), ◇ Our arithmetic. Design parameters carry no mark. |
 | **Layout** | Desktop (1440): sticky visual on the right (≈58%), text steps on the left (max ~38ch, one idea per step). Mobile (390): visual pinned at the top (~52svh), steps scroll beneath as cards with a solid backing. 16px gutters, no horizontal scroll. |
-| **Typography** | A typography-led sans for body and a mono for numbers. Big numbers use display size, e.g. "18%" or "1,584". Text steps are 1–3 sentences. |
 | **Scroll engine** | One `<Scene>` wrapper: a ScrollTrigger pins the visual, and step `<section>`s drive a scrubbed GSAP timeline through `progress` and `activeStep`. Each scene defines `endState(step)`. |
 | **Reduced motion** | When `prefers-reduced-motion` is set, ScrollTrigger scrubbing is disabled and each step renders its end state with a 0 ms crossfade. Particle and rotation loops stop. Interactive toys still work but snap instead of animating. |
 | **3D** | Scenes 0, 4 and 5 use react-three-fiber with drei, loaded through `React.lazy`. While loading, if WebGL is unavailable, below 768px wide, or under reduced motion, the scene shows an equivalent hand-built SVG. That fallback is real content, not a spinner, so the page is fully readable without 3D. Canvases pause rendering (`frameloop="demand"`) when offscreen. |

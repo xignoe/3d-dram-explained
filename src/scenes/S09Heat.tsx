@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Scene, type SceneState } from '../components/Scene';
 import { ProblemChips } from '../components/Problems';
-import { Badge, Note, Src, Term } from '../components/ui';
+import { Note, Term } from '../components/ui';
+import { P } from '../lib/palette';
 import {
   REFRESH as R, TABLE1, TABLE1_FREQ_MHZ, ROWHAMMER as RH, THERMAL as TH, ECC,
   refreshIntervalMs, activationsSinceRefresh, MAX_ACTIVATIONS_PER_WINDOW,
@@ -21,7 +22,7 @@ function RefreshPanel({ step }: { step: number }) {
   const X = (ms: number) => 12 + (ms / span) * 376;
 
   return (
-    <div className="flex h-full flex-col justify-center gap-5">
+    <div className="flex h-full flex-col justify-center-safe gap-5">
       <label className="block text-sm text-muted">
         Junction temperature: <span className={`num text-xl ${hot ? 'text-danger' : 'text-ink'}`}>{temp} °C</span>
         <input type="range" min={TOY.tempSliderMinC} max={R.maxJunctionC} value={temp} onChange={(e) => setManualT(+e.target.value)} aria-valuetext={`${temp} degrees Celsius`} />
@@ -37,7 +38,7 @@ function RefreshPanel({ step }: { step: number }) {
         <text x={X(0)} y="146" fontSize="10" fill="var(--color-faint)">0 ms</text>
         <text x={X(span)} y="146" fontSize="10" textAnchor="end" fill="var(--color-faint)">{span} ms</text>
       </svg>
-      {hot && <p className="text-sm text-muted"><span className="num text-ink">{R.moreFrequentX}×</span> more often than HBM’s nominal rate. <Src>Sec IV-E, V-B</Src></p>}
+      {hot && <p className="sans text-sm text-muted"><span className="num text-ink">{R.moreFrequentX}×</span> more often than HBM’s nominal rate.</p>}
     </div>
   );
 }
@@ -45,19 +46,19 @@ function RefreshPanel({ step }: { step: number }) {
 function RowsPanel() {
   const max = R.fewerRowsMax;
   return (
-    <div className="flex h-full flex-col justify-center gap-6">
+    <div className="flex h-full flex-col justify-center-safe gap-6">
       <div>
         <div className="mb-1 flex justify-between text-sm"><span className="text-dram3d">Raptor bank</span><span className="num text-ink">{fmt(R.rowsPerBank)} rows</span></div>
-        <div className="h-6 rounded bg-surface-2"><div className="h-full rounded bg-dram3d" style={{ width: `${100 / max}%` }} /></div>
+        <div className="h-6 bg-surface-2"><div className="h-full bg-dram3d" style={{ width: `${100 / max}%` }} /></div>
       </div>
       <div>
         <div className="mb-1 flex justify-between text-sm"><span className="text-muted">Conventional DRAM bank</span><span className="num text-ink">{R.fewerRowsLabel} more rows</span></div>
-        <div className="relative h-6 rounded bg-surface-2">
-          <div className="absolute inset-y-0 left-0 rounded-l bg-faint" style={{ width: `${(R.fewerRowsMin / max) * 100}%` }} />
-          <div className="absolute inset-y-0 rounded-r" style={{ left: `${(R.fewerRowsMin / max) * 100}%`, right: 0, background: 'repeating-linear-gradient(45deg, var(--color-faint) 0 4px, transparent 4px 9px)' }} />
+        <div className="relative h-6 bg-surface-2">
+          <div className="absolute inset-y-0 left-0 bg-faint" style={{ width: `${(R.fewerRowsMin / max) * 100}%` }} />
+          <div className="absolute inset-y-0 " style={{ left: `${(R.fewerRowsMin / max) * 100}%`, right: 0, background: 'repeating-linear-gradient(45deg, var(--color-faint) 0 4px, transparent 4px 9px)' }} />
         </div>
       </div>
-      <p className="text-sm text-muted">Refresh works row by row, so a bank with far fewer rows finishes a refresh pass far sooner. Frequent refresh stays cheap. <Src>Sec IV-E, V-B</Src></p>
+      <p className="sans text-sm text-muted">Refresh works row by row, so a bank with far fewer rows finishes a refresh pass far sooner. Frequent refresh stays cheap.</p>
     </div>
   );
 }
@@ -65,16 +66,15 @@ function RowsPanel() {
 function TablePanel() {
   const max = Math.max(...TABLE1.map((r) => r.overheadPct));
   return (
-    <div className="flex h-full flex-col justify-center gap-4">
-      <div className="flex items-center justify-between"><span className="text-sm text-muted">Bandwidth lost to refresh, at {TABLE1_FREQ_MHZ} MHz</span><Badge kind="measured" /></div>
+    <div className="flex h-full flex-col justify-center-safe gap-4">
+      <div className="sans text-sm text-muted">Bandwidth lost to refresh, at {TABLE1_FREQ_MHZ} MHz</div>
       {TABLE1.map((r) => (
         <div key={r.intervalMs}>
           <div className="mb-1 flex justify-between text-sm"><span className="text-ink">every <span className="num">{r.intervalMs} ms</span></span><span className="num text-ink">{r.overheadPct.toFixed(2)}%</span></div>
-          <div className="h-5 rounded bg-surface-2"><div className="h-full rounded" style={{ width: `${(r.overheadPct / max) * 100}%`, background: r.intervalMs === R.hotIntervalMs ? 'var(--color-dram3d)' : 'var(--color-faint)' }} /></div>
+          <div className="h-5 bg-surface-2"><div className="h-full " style={{ width: `${(r.overheadPct / max) * 100}%`, background: r.intervalMs === R.hotIntervalMs ? 'var(--color-dram3d)' : 'var(--color-faint)' }} /></div>
           <div className="mt-0.5 text-[0.7rem] text-faint">leaves <span className="num">{r.bandwidthTBs}</span> TB/s</div>
         </div>
       ))}
-      <Src>Table I</Src>
     </div>
   );
 }
@@ -100,17 +100,17 @@ function RacePanel({ active, reduced }: { active: boolean; reduced: boolean }) {
   const now = activationsSinceRefresh(Math.min(t, RH.attackMs - 1e-9));
   const refreshes = Array.from({ length: Math.floor(RH.attackMs / RH.refreshMs) }, (_, i) => (i + 1) * RH.refreshMs);
   return (
-    <div className="flex h-full flex-col justify-center gap-5">
+    <div className="flex h-full flex-col justify-center-safe gap-5">
       <div className="text-sm text-muted">An attacker hammers one row, hoping to flip bits in its neighbour. They need <span className="num text-ink">{fmt(RH.threshold)}</span> activations, at <span className="num text-ink">{RH.tRCns} ns</span> each.</div>
       <div>
         <div className="mb-1 flex justify-between text-xs text-muted"><span>if nothing interrupted them</span><span className="num">{fmt(Math.round(ghost * RH.threshold))}</span></div>
-        <div className="h-5 rounded bg-surface-2"><div className="h-full rounded bg-danger/50" style={{ width: `${ghost * 100}%` }} /></div>
+        <div className="h-5 bg-surface-2"><div className="h-full bg-danger/50" style={{ width: `${ghost * 100}%` }} /></div>
         <div className="mt-0.5 text-[0.7rem] text-faint">reaches the threshold after <span className="num">{RH.attackMs} ms</span></div>
       </div>
       <div>
         <div className="mb-1 flex justify-between text-xs text-muted"><span>with a refresh every {RH.refreshMs} ms</span><span className="num">{fmt(reduced ? MAX_ACTIVATIONS_PER_WINDOW : now)}</span></div>
-        <div className="relative h-5 rounded bg-surface-2">
-          <div className="h-full rounded bg-dram3d" style={{ width: `${((reduced ? MAX_ACTIVATIONS_PER_WINDOW : now) / RH.threshold) * 100}%` }} />
+        <div className="relative h-5 bg-surface-2">
+          <div className="h-full bg-dram3d" style={{ width: `${((reduced ? MAX_ACTIVATIONS_PER_WINDOW : now) / RH.threshold) * 100}%` }} />
           <div className="absolute inset-y-[-4px] right-0 w-0.5 bg-danger" title="threshold" />
         </div>
         <div className="mt-0.5 text-[0.7rem] text-faint">count resets at every refresh; peaks near <span className="num">{fmt(MAX_ACTIVATIONS_PER_WINDOW)}</span> (derived), never the threshold</div>
@@ -124,7 +124,7 @@ function RacePanel({ active, reduced }: { active: boolean; reduced: boolean }) {
       </div>
       <div className="mt-3 flex items-center gap-3">
         {!reduced && <button className="chip-btn" onClick={() => setRun((r) => r + 1)}>Run race again</button>}
-        <span className="text-[0.7rem] text-faint">Threshold {fmt(RH.threshold)} {RH.thresholdNote}. <Src>Sec V-B</Src></span>
+
       </div>
     </div>
   );
@@ -132,36 +132,34 @@ function RacePanel({ active, reduced }: { active: boolean; reduced: boolean }) {
 
 /* ---------- 9c: heat ---------- */
 function HeatStack() {
-  const layers = [
-    { name: 'heatsink', h: 70, fill: '#3a4152' },
-    { name: 'TIM2', h: 10, fill: '#59617a' },
-    { name: 'copper lid', h: 26, fill: '#b87a4b' },
-    { name: 'TIM1', h: 10, fill: '#59617a' },
-    { name: 'logic die', h: 26, fill: '#e3683f' },
-    { name: '3D-DRAM die', h: 26, fill: '#d99a4a' },
-    { name: 'substrate', h: 18, fill: '#1c2230' },
+  const layers: { name: string; note?: string; h: number; fill: string }[] = [
+    { name: 'heatsink', note: `≈${TH.coolingShareRthetaPct}% of the thermal resistance`, h: 70, fill: P.logicDark },
+    { name: 'TIM2', h: 10, fill: P.tim },
+    { name: 'copper lid', h: 26, fill: P.copper },
+    { name: 'TIM1', h: 10, fill: P.tim },
+    { name: 'logic die', note: 'hottest layer', h: 26, fill: P.heat },
+    { name: 'DRAM die', note: `≈${TH.dramCoolerC} °C cooler than the logic`, h: 26, fill: P.heatCool },
+    { name: 'substrate', h: 18, fill: P.board },
   ];
-  let y = 20;
+  let y = 16;
   return (
-    <svg viewBox="0 0 400 260" className="h-full w-full" aria-hidden>
+    <svg viewBox="0 0 470 260" className="h-full w-full" aria-hidden>
       {layers.map((l) => {
         const yy = y; y += l.h + 2;
         return (
           <g key={l.name}>
             {l.name === 'heatsink'
-              ? Array.from({ length: 12 }, (_, i) => <rect key={i} x={40 + i * 18} y={yy} width="10" height={l.h} rx="2" fill={l.fill} />)
-              : <rect x="40" y={yy} width="208" height={l.h} rx="3" fill={l.fill} />}
-            <text x="258" y={yy + l.h / 2 + 4} fontSize="11" fill="var(--color-muted)">{l.name}</text>
+              ? Array.from({ length: 11 }, (_, i) => <rect key={i} x={20 + i * 18} y={yy} width="10" height={l.h} fill={l.fill} stroke={P.ink} strokeWidth="0.8" />)
+              : <rect x="20" y={yy} width="190" height={l.h} fill={l.fill} stroke={P.ink} strokeWidth="0.8" />}
+            <text x="222" y={yy + l.h / 2 + 4} fontSize="12" fill={P.ink}>{l.name}{l.note && <tspan fill={P.ink2} fontStyle="italic"> · {l.note}</tspan>}</text>
           </g>
         );
       })}
-      {[70, 110, 150, 190, 230].map((x, i) => (
-        <path key={x} d={`M${x - 26} 170 C ${x - 22} 140, ${x - 30} 120, ${x - 26} 92`} stroke="#ff8f6b" strokeWidth="2" fill="none" opacity="0.7" style={{ animation: 'pulse-soft 1.8s ease-in-out infinite', animationDelay: `${i * 0.2}s` }} markerEnd="url(#heat-ah)" />
+      {[46, 82, 118, 154, 190].map((x, i) => (
+        <path key={x} d={`M${x} 172 C ${x + 4} 140, ${x - 4} 120, ${x} 92`} stroke={P.ink} strokeWidth="1.2" fill="none" opacity="0.8" style={{ animation: 'pulse-soft 1.8s ease-in-out infinite', animationDelay: `${i * 0.2}s` }} markerEnd="url(#heat-ah)" />
       ))}
-      <text x="258" y="34" fontSize="11" className="svg-num" fill="var(--color-ink)">≈{TH.coolingShareRthetaPct}% of thermal resistance</text>
-      <text x="345" y="199" fontSize="11" textAnchor="end" fill="var(--color-ink)" className="svg-num">≈{TH.dramCoolerC} °C cooler</text>
-      <text x="258" y="250" fontSize="10" fill="var(--color-faint)">whole die stack: ≈{TH.dieStackShareRthetaPct}% of resistance</text>
-      <defs><marker id="heat-ah" viewBox="0 0 6 6" refX="3" refY="1" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 6 L3 0 L6 6 Z" fill="#ff8f6b" /></marker></defs>
+      <text x="20" y="246" fontSize="11" fill={P.ink2}>The whole logic-plus-DRAM stack adds only ≈{TH.dieStackShareRthetaPct}% of the thermal resistance.</text>
+      <defs><marker id="heat-ah" viewBox="0 0 6 6" refX="3" refY="1" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 6 L3 0 L6 6 Z" fill={P.ink} /></marker></defs>
     </svg>
   );
 }
@@ -176,8 +174,8 @@ function CoolingPanel() {
     { c: liquid, w: null, temp: `under ${liquid.belowC} °C`, bar: 'limit not stated' },
   ];
   return (
-    <div className="flex h-full flex-col justify-center gap-4">
-      <div className="flex items-center justify-between"><span className="text-sm text-muted">Power each chiplet can draw under {TH.limitC} °C</span><Badge kind="modeled" /></div>
+    <div className="flex h-full flex-col justify-center-safe gap-4">
+      <div className="sans text-sm text-muted">Power each chiplet can draw while staying under {TH.limitC} °C</div>
       <div className="relative space-y-4">
         <div className="absolute inset-y-0 border-l border-dashed border-ink/60" style={{ left: pct(TH.chipletW) }}>
           <span className="absolute -top-5 -translate-x-1/2 whitespace-nowrap text-[0.65rem] text-ink">Raptor: {TH.chipletW} W</span>
@@ -185,24 +183,22 @@ function CoolingPanel() {
         {rows.map(({ c, w, temp, bar }) => (
           <div key={c.id}>
             <div className="mb-1 flex justify-between text-xs"><span className="text-ink">{c.label}</span><span className="text-muted">at {TH.chipletW} W: <span className="num text-ink">{temp}</span></span></div>
-            <div className="h-5 rounded bg-surface-2">
+            <div className="h-5 bg-surface-2">
               {w !== null
-                ? <div className="h-full rounded" style={{ width: pct(w), background: w < TH.chipletW ? 'var(--color-danger)' : 'var(--color-dram3d)' }} />
-                : <div className="h-full rounded" style={{ width: '100%', background: 'linear-gradient(90deg, var(--color-dram3d), transparent)' }} />}
+                ? <div className="h-full " style={{ width: pct(w), background: w < TH.chipletW ? 'var(--color-danger)' : 'var(--color-dram3d)' }} />
+                : <div className="h-full " style={{ width: '100%', background: 'linear-gradient(90deg, var(--color-dram3d), transparent)' }} />}
             </div>
             <div className="mt-0.5 text-[0.7rem] text-faint">{bar}</div>
           </div>
         ))}
       </div>
-      <Note>From the paper’s analytical thermal model (Fig. 12), not a silicon measurement. <Src>Sec V-C</Src></Note>
     </div>
   );
 }
 
 function Visual({ step, inView, reduced }: SceneState) {
   return (
-    <div className="panel relative h-full overflow-hidden p-4 lg:p-7">
-      {step === 5 && <div className="absolute right-3 top-3"><Badge kind="modeled" /></div>}
+    <div className="sans relative h-full overflow-hidden">
       {step <= 1 && <RefreshPanel step={step} />}
       {step === 2 && <RowsPanel />}
       {step === 3 && <TablePanel />}
@@ -218,7 +214,9 @@ export function S09Heat() {
   return (
     <Scene
       id="heat"
-      kicker={<><ProblemChips active={3} /><span className="block">9 · Problem 4: heat, refresh, and rowhammer</span></>}
+      num={9}
+      kicker="Problem 4 · Heat, refresh, rowhammer"
+      eyebrow={<ProblemChips active={3} />}
       title="A hot stack forgets faster."
       steps={[
         <p key="0">DRAM stores each bit as a tiny charge that slowly leaks away, so every row must be <Term k="refresh">refreshed</Term> on a schedule. Below {R.hotThresholdC} °C, Raptor refreshes every <strong className="num">{R.coolIntervalMs} ms</strong>.</p>,
@@ -242,6 +240,15 @@ export function S09Heat() {
         `Modeled cooling comparison at ${TH.chipletW} W per chiplet: air cooling fits only ${air.maxChipletW} W; optimized heatsink about ${opt.peakAt106C} °C with headroom to ${opt.headroomW} W; liquid cooling under ${liquid.belowC} °C.`,
       ][Math.min(s.step, 6)]}
       visual={(s) => <Visual {...s} />}
+      figure={(s) => [
+        { caption: <>Refresh schedule at the slider’s temperature, compared with HBM’s nominal interval. Interactive. Source: Sec IV-E, Sec V-B.</> },
+        { caption: <>Refresh schedule at the slider’s temperature, compared with HBM’s nominal interval. Interactive. Source: Sec IV-E, Sec V-B.</> },
+        { caption: <>Rows per bank, Raptor against a conventional DRAM bank; the hatched range spans {R.fewerRowsLabel}. Source: Sec IV-E.</> },
+        { evidence: 'measured' as const, caption: <>Measured bandwidth lost to refresh at three refresh intervals, and the bandwidth left over. Source: Table I.</> },
+        { caption: <>A rowhammer race on the chip’s timings. The threshold of {fmt(RH.threshold)} activations {RH.thresholdNote}. The peak count per refresh window is our arithmetic. Source: Sec V-B.</> },
+        { evidence: 'modeled' as const, caption: <>Cross-section of the stack, not to scale. Heat flows up to the heatsink; the share of thermal resistance comes from the paper’s analytical model. Source: Sec V-C, Fig. 12.</> },
+        { evidence: 'modeled' as const, caption: <>From the paper’s analytical thermal model, not a silicon measurement. The dashed line marks Raptor’s operating point. Source: Sec V-C, Fig. 12.</> },
+      ][Math.min(s.step, 6)]}
     />
   );
 }

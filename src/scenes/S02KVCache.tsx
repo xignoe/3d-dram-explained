@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Scene, type SceneState } from '../components/Scene';
-import { Badge, Term, Note, Src } from '../components/ui';
+import { Term, Note } from '../components/ui';
 import {
   KV_INTRO, KV_BATCH, KV_SLIDERS, KV_BATCH_INFERRED_CONTEXT, kvCacheGB, kvContextSteps, contextLabel,
 } from '../data/paper';
 import { fmt } from '../lib/fmt';
+import { P } from '../lib/palette';
 
 const CTX_STEPS = kvContextSteps();
 
@@ -37,55 +38,49 @@ function Visual({ step, progress }: SceneState) {
   const segs = Math.min(v.users, KV_SLIDERS.usersMax);
 
   return (
-    <div className="flex h-full items-center"><div className="panel flex max-h-full w-full flex-col gap-3 overflow-hidden p-4 lg:gap-6 lg:p-7">
-      <div className="flex items-start justify-between gap-3">
+    <div className="flex h-full flex-col justify-center-safe gap-5 lg:gap-8">
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
         <div>
-          <div className="text-xs text-muted lg:text-sm">KV cache for {v.users} user{v.users > 1 ? 's' : ''} at {contextLabel(v.ctx)} tokens</div>
-          <div className="num mt-1 text-4xl font-semibold text-dram3d lg:text-6xl" aria-live="polite">
-            {fmt(kv)}<span className="ml-1 text-lg text-muted lg:text-2xl">GB</span>
+          <div className="sans text-sm text-muted">KV cache for {v.users} user{v.users > 1 ? 's' : ''} at {contextLabel(v.ctx)} tokens</div>
+          <div className="num mt-1 font-serif text-6xl font-medium leading-none tracking-tight text-dram3d lg:text-8xl" aria-live="polite">
+            {fmt(kv)}<span className="ml-2 text-2xl font-normal text-muted lg:text-3xl">GB</span>
           </div>
         </div>
-        <div className="flex flex-col items-end gap-1.5">
-          <Badge kind="derived" />
-          {note && <span className="text-[0.7rem] text-measured">✓ {note}</span>}
-        </div>
+        {note && <span className="sans pb-1 text-xs italic text-muted">✓ {note}</span>}
       </div>
 
-      <div className="space-y-2 lg:space-y-3">
+      <div className="sans space-y-3 lg:space-y-4">
         <div>
           <div className="mb-1 flex justify-between text-xs text-muted"><span>Model weights ({KV_INTRO.precisionLabel})</span><span className="num">{weights} GB</span></div>
-          <div className="h-4 rounded bg-surface-2 lg:h-6"><div className="fade h-full rounded bg-faint" style={{ width: `${(weights / max) * 100}%` }} /></div>
+          <div className="h-4 bg-surface-2 lg:h-5"><div className="fade h-full" style={{ width: `${(weights / max) * 100}%`, background: P.logicDark }} /></div>
         </div>
         <div>
-          <div className="mb-1 flex justify-between text-xs text-muted"><span>KV cache (one band per user)</span><span className="num">{fmt(kv)} GB</span></div>
-          <div className="h-4 rounded bg-surface-2 lg:h-6">
-            <div className="fade flex h-full overflow-hidden rounded" style={{ width: `${(kv / max) * 100}%` }}>
+          <div className="mb-1 flex justify-between text-xs text-muted"><span>KV cache, one band per user</span><span className="num">{fmt(kv)} GB</span></div>
+          <div className="h-4 bg-surface-2 lg:h-5">
+            <div className="fade flex h-full overflow-hidden" style={{ width: `${(kv / max) * 100}%` }}>
               {Array.from({ length: segs }, (_, i) => (
-                <div key={i} className="h-full flex-1 border-r border-bg/70 last:border-r-0" style={{ background: 'var(--color-dram3d)', opacity: 0.55 + 0.45 * ((i % 2) ? 0.6 : 1) }} />
+                <div key={i} className="h-full flex-1 border-r border-bg last:border-r-0" style={{ background: i % 2 ? P.dram : P.dramMid }} />
               ))}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="sans grid grid-cols-2 gap-6 border-t border-line pt-4">
         <label className="text-xs text-muted">
-          Context: <span className="num text-ink">{contextLabel(v.ctx)}</span> tokens
+          Context <span className="num ml-1 text-sm text-ink">{contextLabel(v.ctx)}</span> tokens
           <input type="range" min={0} max={CTX_STEPS.length - 1} step={1}
             value={Math.max(0, CTX_STEPS.indexOf(v.ctx))}
             onChange={(e) => setManual({ ctx: CTX_STEPS[+e.target.value], users: v.users })}
             aria-valuetext={`${contextLabel(v.ctx)} tokens`} />
         </label>
         <label className="text-xs text-muted">
-          Users: <span className="num text-ink">{v.users}</span>
+          Users <span className="num ml-1 text-sm text-ink">{v.users}</span>
           <input type="range" min={KV_SLIDERS.usersMin} max={KV_SLIDERS.usersMax} step={1} value={v.users}
             onChange={(e) => setManual({ ctx: v.ctx, users: +e.target.value })} />
         </label>
       </div>
-      <p className="hidden text-[0.7rem] leading-snug text-faint lg:block">
-        ≈ {KV_INTRO.mbPerTokenPerUser} MB × tokens × users, for the paper’s {KV_INTRO.modelLabel} example with {KV_INTRO.precisionLabel} storage ({KV_INTRO.layers} layers, {KV_INTRO.kvHeads} KV heads, head size {KV_INTRO.headDim}). <Src>Sec I, Sec III-B</Src>
-      </p>
-    </div></div>
+    </div>
   );
 }
 
@@ -94,7 +89,8 @@ export function S02KVCache() {
   return (
     <Scene
       id="kv-cache"
-      kicker="2 · The KV cache"
+      num={2}
+      kicker="The KV cache"
       title="The model’s memory of your conversation keeps growing."
       steps={[
         <p key="a">For every token in a conversation, the model stores notes it will need again: the <Term k="kv">KV cache</Term>. For the paper’s {KV_INTRO.modelLabel} example, that is about <strong className="num">{KV_INTRO.mbPerTokenPerUser} MB per token, per user</strong>, at {KV_INTRO.precisionLabel} precision.</p>,
@@ -109,6 +105,10 @@ export function S02KVCache() {
         `Interactive: sliders for context length and number of users. A bar compares the KV cache size, computed as about ${KV_INTRO.mbPerTokenPerUser} megabytes per token per user, against ${KV_INTRO.weightsGB} gigabytes of model weights. Paper values: ${a.map((x) => `${x.gb} GB at ${x.label}`).join(', ')} for one user; ${KV_BATCH.batch1GB} GB rising to ${KV_BATCH.batch32GB} GB from ${KV_BATCH.batchLow} to ${KV_BATCH.batchHigh} users.`
       }
       visual={(s) => <Visual {...s} />}
+      figure={() => ({
+        evidence: 'derived',
+        caption: <>KV cache size ≈ {KV_INTRO.mbPerTokenPerUser} MB × tokens × users, for the paper’s {KV_INTRO.modelLabel} example with {KV_INTRO.precisionLabel} storage ({KV_INTRO.layers} layers, {KV_INTRO.kvHeads} KV heads, head size {KV_INTRO.headDim}). Ticks mark values the paper states. Source: Sec I, Sec III-B.</>,
+      })}
     />
   );
 }

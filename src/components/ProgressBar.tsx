@@ -17,5 +17,5 @@ export function ProgressBar() {
     addEventListener('resize', on);
     return () => { removeEventListener('scroll', on); removeEventListener('resize', on); };
   }, []);
-  return <div ref={ref} aria-hidden className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left scale-x-0 bg-dram3d/80" />;
+  return <div ref={ref} aria-hidden className="fixed inset-x-0 top-0 z-50 h-[3px] origin-left scale-x-0 bg-ink" />;
 }
