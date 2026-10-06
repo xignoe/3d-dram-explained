@@ -13,7 +13,6 @@ import { S10Silicon } from './scenes/S10Silicon';
 import { S11Cards } from './scenes/S11Cards';
 import { S12Results } from './scenes/S12Results';
 import { S13Pairings } from './scenes/S13Pairings';
-import { S14Critical } from './scenes/S14Critical';
 import { Footer } from './components/Footer';
 import { ProgressBar } from './components/ProgressBar';
 import { useScrollRefresh } from './lib/useScrollRefresh';
@@ -40,7 +39,6 @@ export default function App() {
         <S11Cards />
         <S12Results />
         <S13Pairings />
-        <S14Critical />
       </main>
       <Footer />
     </>

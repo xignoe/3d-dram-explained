@@ -493,21 +493,6 @@ export const PAIRINGS = {
   spec: { raptor: 'draft model: K fast sequential steps (memory-bound)', gpu: 'verify K tokens in one parallel pass (compute-bound)' }, // Sec IX(2)
 } as const;
 
-// ---------------------------------------------------------------------------
-// Scene 14 · Read this critically (Sec VII, VIII-A)
-// ---------------------------------------------------------------------------
-
-export const CRITICAL = {
-  sharedComputePFLOPS: 10, // Table III caption (all baselines share the XPU logic)
-  fastMemoryPerCardGB: 32, // Table III
-  batchSize: 32, // Sec VIII-A ("We therefore fix the batch size to 32")
-  simulatedSeconds: 1, // Sec VIII-A ("Each simulation runs for 1s")
-  arrivalRate: 110, // Sec VIII-A ("an arrival rate of 110 requests/s")
-  arrivalRateMax: 1000, // Table IV(a) (sweep up to 1000 req/s)
-  modeledCapacityX: [2, 4], // Sec VII-A, Table III ("3D-DRAM (2x Full)", "3D-DRAM (4x Full)")
-  stacksInTesting: '2-high and 4-high', // Sec VII-A ("Our lab is also testing chips with 2-High and 4-High stacking")
-} as const;
-
 /** Table V / Sec X: comparison with recent 3D and processing-in-memory designs. */
 export const PRIOR_WORK = [
   { name: 'H2-LLM', bandwidth: '0.4 TB/s', validation: 'simulation' }, // Table V ("Effective BW 0.4 TB/s", "Validation Simulation")

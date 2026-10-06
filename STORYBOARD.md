@@ -233,16 +233,8 @@ Three beats, each with its own visual and badge.
 - **Interaction:** None.
 - **Numbers:** `PAIRINGS.raptorBandwidthTBs` (~100 TB/s), shown once.
 
-## Scene 14 · Read this critically *(text with icons)*
-- **Idea:** This is promising early silicon. Here is what the paper does and doesn't show.
-- **Visual:** Five icon rows in a calm, fair tone:
-  1. **Modeled, not measured.** The serving results come from a performance model; the silicon measurements cover memory bandwidth, latency, energy and refresh.
-  2. **Same brain, different pantry.** Every baseline uses d-Matrix's own 10 PFLOPS compute logic, not real GPUs or other vendors' chips.
-  3. **Per card, not per dollar or per watt.** Cost and total power comparisons aren't reported.
-  4. **32 GB is still small.** Big models still need many cards or the slower 128 GB LPDDR5X tier.
-  5. **Batch size of 32** is justified by a short (1-second) queue simulation at 110 requests per second.
-- **Scroll:** Rows fade in one per step, and a chef pictogram closes the page: "a faster pantry, not a magic one".
-- **Numbers:** `CRITICAL.*` (10 PFLOPS, 32 GB, batch 32, 1 s, 110 req/s), `HIERARCHY.mcm.lpddrGB` (128).
+## Scene 14 · Read this critically *(removed)*
+Cut at the author's request; the page now ends with Scene 13 and the footer.
 
 ## Footer
 Full citation from `CITATION`: title, all 12 authors, venue, year, pages, DOI 10.1109/ISCA66397.2026.00183, and a link to the PDF. Plus: "An independent explainer. Not affiliated with or endorsed by d-Matrix." and "All illustrations are original; numbers are from the paper unless labeled *derived*."
