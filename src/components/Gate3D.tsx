@@ -39,7 +39,6 @@ export function Gate3D({ fallback, children }: { fallback: ReactNode; children: 
   // Read after hydration so the prerendered HTML matches the first client render.
   const [debug, setDebug] = useState(false);
   useEffect(() => setDebug(/[?&]debug\b/.test(location.search)), []);
-
   useEffect(() => {
     const el = ref.current;
     if (!el || near) return;

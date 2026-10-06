@@ -35,7 +35,10 @@ export function hasWebGL(): boolean {
   if (webglCache !== null) return webglCache;
   try {
     const c = document.createElement('canvas');
-    webglCache = !!(c.getContext('webgl2') || c.getContext('webgl'));
+    const gl = c.getContext('webgl2') || c.getContext('webgl');
+    webglCache = !!gl && !gl.isContextLost();
+    // Release the test context right away so it doesn't count against the browser's limit on live WebGL contexts.
+    gl?.getExtension('WEBGL_lose_context')?.loseContext();
   } catch {
     webglCache = false;
   }
