@@ -4,6 +4,7 @@ import { Edges } from '@react-three/drei';
 import * as THREE from 'three';
 import { HIERARCHY } from '../data/paper';
 import { P } from '../lib/palette';
+import { RenderProbe } from './RenderProbe';
 
 export interface HeroChipletProps {
   /** 1 = fully exploded, 0 = dies touching. Mutated by scroll, read per frame. */
@@ -140,8 +141,9 @@ export default function HeroChiplet({ explodeRef, active }: HeroChipletProps) {
       frameloop={active ? 'always' : 'never'}
       dpr={[1, 2]}
       camera={{ position: [6, 5.2, 6], zoom: 80, near: -50, far: 100 }}
-      gl={{ antialias: true, alpha: true }}
+      gl={{ antialias: true, alpha: true, preserveDrawingBuffer: true }}
     >
+      <RenderProbe />
       <Fit />
       <ambientLight intensity={1.7} />
       <directionalLight position={[4, 8, 3]} intensity={1.0} />

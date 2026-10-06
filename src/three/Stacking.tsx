@@ -4,6 +4,7 @@ import { Edges } from '@react-three/drei';
 import * as THREE from 'three';
 import { P } from '../lib/palette';
 import { TOY } from '../data/illustrative';
+import { RenderProbe } from './RenderProbe';
 
 /**
  * mix = 0: HBM-style layout (memory beside the processor, data squeezes through an edge).
@@ -158,7 +159,8 @@ function World({ target }: { target: number }) {
 
 export default function Stacking({ mix, active }: Props) {
   return (
-    <Canvas flat frameloop={active ? 'always' : 'never'} dpr={[1, 2]} camera={{ position: [0, 4.4, 6.6], fov: 34 }} gl={{ antialias: true, alpha: true }}>
+    <Canvas flat frameloop={active ? 'always' : 'never'} dpr={[1, 2]} camera={{ position: [0, 4.4, 6.6], fov: 34 }} gl={{ antialias: true, alpha: true, preserveDrawingBuffer: true }}>
+      <RenderProbe />
       <ambientLight intensity={1.6} />
       <directionalLight position={[4, 7, 5]} intensity={1.1} />
       <World target={mix} />
