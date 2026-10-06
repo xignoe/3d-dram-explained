@@ -47,7 +47,7 @@ export function Gate3D({ fallback, children }: { fallback: ReactNode; children: 
         setNear(true);
         io.disconnect();
       }
-    }, { rootMargin: '100% 0px' });
+    }, { rootMargin: '250% 0px' });
     io.observe(el);
     return () => io.disconnect();
   }, [near]);

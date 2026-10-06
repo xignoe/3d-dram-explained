@@ -1,11 +1,20 @@
-import { lazy, useEffect, useState, type ReactNode } from 'react';
+import { lazy, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useInView } from '../lib/hooks';
 import { Scene, type SceneState } from '../components/Scene';
 import { Chef, Term } from '../components/ui';
 import { P } from '../lib/palette';
 import { STACKING } from '../data/paper';
 import { Gate3D } from '../components/Gate3D';
 
-const Stacking3D = lazy(() => import('../three/Stacking'));
+const loadStacking = () => import('../three/Stacking');
+const Stacking3D = lazy(loadStacking);
+// Fetch the 3D scene once the page is idle, so it is ready long before a reader scrolls to it.
+if (typeof window !== 'undefined') {
+  window.addEventListener('load', () => {
+    const idle = (window as Window & { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1500));
+    idle(() => { if (window.matchMedia('(min-width: 768px)').matches) loadStacking(); });
+  }, { once: true });
+}
 
 const LABEL_X = 356;
 
@@ -117,13 +126,17 @@ function Visual({ step, progress, inView, reduced }: SceneState) {
   const scripted = step === 0 ? 0 : step === 1 ? progress : 1;
   const mix = manual ?? scripted;
   const callouts = step >= 3;
+  // Run the 3D scene from a screen away, so it has already drawn by the time it is on screen
+  // (otherwise the SVG stand-in flashes while the first frames render).
+  const box = useRef<HTMLDivElement>(null);
+  const near = useInView(box, '250% 0px');
 
   return (
-    <div className="relative h-full w-full">
+    <div ref={box} className="relative h-full w-full">
       <div className={`fade absolute inset-0 ${callouts ? 'pb-36 lg:pb-32' : ''}`}>
         <div className="relative h-full w-full">
           <Gate3D fallback={<CrossSections mix={mix} step={step} animate={inView && !reduced} />}>
-            <Stacking3D mix={mix} active={inView} />
+            <Stacking3D mix={mix} active={near} />
             <div className="sans pointer-events-none absolute left-0 top-0 text-xs italic text-muted" aria-hidden>
               {mix < 0.5 ? 'Memory beside the processor' : 'Memory beneath the processor'}
             </div>
