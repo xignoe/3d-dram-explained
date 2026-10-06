@@ -1,8 +1,11 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { lazy, useEffect, useState, type ReactNode } from 'react';
 import { Scene, type SceneState } from '../components/Scene';
 import { Chef, Term } from '../components/ui';
 import { P } from '../lib/palette';
 import { STACKING } from '../data/paper';
+import { Gate3D } from '../components/Gate3D';
+
+const Stacking3D = lazy(() => import('../three/Stacking'));
 
 const LABEL_X = 356;
 
@@ -117,7 +120,16 @@ function Visual({ step, progress, inView, reduced }: SceneState) {
 
   return (
     <div className="relative h-full w-full">
-      <div className={`fade absolute inset-0 ${callouts ? 'pb-36 lg:pb-32' : ''}`}><CrossSections mix={mix} step={step} animate={inView && !reduced} /></div>
+      <div className={`fade absolute inset-0 ${callouts ? 'pb-36 lg:pb-32' : ''}`}>
+        <div className="relative h-full w-full">
+          <Gate3D fallback={<CrossSections mix={mix} step={step} animate={inView && !reduced} />}>
+            <Stacking3D mix={mix} active={inView} />
+            <div className="sans pointer-events-none absolute left-0 top-0 text-xs italic text-muted" aria-hidden>
+              {mix < 0.5 ? 'Memory beside the processor' : 'Memory beneath the processor'}
+            </div>
+          </Gate3D>
+        </div>
+      </div>
       <div className={`fade absolute inset-x-0 bottom-0 flex flex-col gap-3 bg-bg/90 pt-2 ${callouts ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
         <dl className="grid grid-cols-3 divide-x divide-line border-y border-line">
           <div className="px-2 py-2 lg:px-4">
@@ -166,13 +178,13 @@ export function S04Stacking() {
       ]}
       description={(s) =>
         (s.step === 0
-          ? 'Two package cross-sections. Highlighted: memory stacks beside the processor on an interposer, with data running sideways and entering only at the processor’s edges.'
-          : `Two package cross-sections. Highlighted: Raptor’s logic die (${STACKING.logicProcess}) bonded face to face on a DRAM die through µbumps ${STACKING.microbumpPitchUm} micrometres apart, with through-silicon vias and C4 bumps below, on an interposer and substrate. Data crosses the whole face of the die.`)
+          ? 'Memory stacks beside the processor on an interposer, with data running sideways and entering only at the processor’s edges.'
+          : `Raptor’s logic die (${STACKING.logicProcess}) bonded face to face on a DRAM die through µbumps ${STACKING.microbumpPitchUm} micrometres apart, with through-silicon vias and C4 bumps below, on an interposer and substrate. Data crosses the whole face of the die.`)
         + (s.step >= 3 ? ` Callouts: ${STACKING.microbumpPitchUm} micrometres between connectors; ${STACKING.ioPJPerBit} picojoules per bit, measured; about ${STACKING.vsHBM3EnergyX} times less than HBM3.` : '')
       }
       visual={(s) => <Visual {...s} />}
       figure={(s) => s.step < 3
-        ? { caption: <>Two ways of connecting memory to a processor, drawn as package cross-sections. Schematic and not to scale; the layer names follow the paper’s Sec IV-B and its X-ray cross-section (Fig. 1b).</> }
+        ? { caption: <>Two ways of connecting memory to a processor. When the memory sits beside the processor, data crosses one narrow edge; when the two dies are stacked face to face, data crosses the whole die. Schematic and not to scale; on small screens the figure is drawn as cross-sections using the layer names from the paper’s Sec IV-B and Fig. 1b.</> }
         : { evidence: 'measured', caption: <>The energy per bit (■) was measured on Raptor silicon. The bump pitch is a design figure, and the HBM3 comparison is against reported values. Source: Sec IV-B, Sec IV-D.</> }}
     />
   );

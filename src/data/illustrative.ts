@@ -9,6 +9,11 @@ export const TOY = {
   promptTokens: ['Why', 'is', 'decoding', 'slow', '?'],
   replyTokens: ['Every', 'new', 'word', 'needs', 'a', 'memory', 'trip', '.'],
 
+  // Scene 4: particle counts and speeds for the trickle vs rain (3D view)
+  trickleParticles: 90,
+  rainParticles: 1400,
+  particleSpeed: 0.35,
+
   // Scene 5: how many rows/columns to draw inside the zoomed-in bank (the real bank is 1,364 x 124)
   bankRowsDrawn: 26,
   bankColsDrawn: 12,
