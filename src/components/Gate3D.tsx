@@ -20,7 +20,6 @@ class Boundary extends Component<{ onError: (why: string) => void; children: Rea
   render() { return this.state.failed ? null : this.props.children; }
 }
 
-const DEBUG = typeof location !== 'undefined' && /[?&]debug\b/.test(location.search);
 
 /**
  * Renders `children` (a lazily-imported 3D scene) only on desktop-width screens
@@ -37,6 +36,9 @@ export function Gate3D({ fallback, children }: { fallback: ReactNode; children: 
   const [near, setNear] = useState(false);
   const [status, setStatus] = useState<Status>('idle');
   const [why, setWhy] = useState('');
+  // Read after hydration so the prerendered HTML matches the first client render.
+  const [debug, setDebug] = useState(false);
+  useEffect(() => setDebug(/[?&]debug\b/.test(location.search)), []);
 
   useEffect(() => {
     const el = ref.current;
@@ -72,7 +74,7 @@ export function Gate3D({ fallback, children }: { fallback: ReactNode; children: 
           </Boundary>
         </div>
       )}
-      {DEBUG && (
+      {debug && (
         <div className="sans absolute bottom-0 right-0 z-10 bg-bg/90 px-1 text-[10px] text-muted">
           3D: {!desktop ? 'narrow' : reduced ? 'reduced motion' : !hasWebGL() ? 'no WebGL' : !near ? 'waiting' : status}{why ? ` (${why.slice(0, 80)})` : ''}
         </div>
