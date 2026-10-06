@@ -42,11 +42,11 @@ export function S12Results() {
       id="results"
       num={12}
       kicker="Results"
-      title="Faster per card, and faster per user."
+      title="What the performance model predicts"
       steps={[
-        <p key="0">The paper’s performance model pairs the same compute logic with each kind of memory and serves real models with it. Averaged across its models, Raptor’s 3D-DRAM delivers <strong className="num">{R.throughputVsHBM}×</strong> the tokens per second per card of HBM and <strong className="num">{R.throughputVsSRAM}×</strong> that of SRAM, while each user waits <strong className="num">{R.tpotLowerVsHBM}×</strong> less per token than with HBM.</p>,
-        <p key="1">In one specific, realistic setting ({R.scenario.contextLabel} context, a {R.scenario.latencyUs} µs, {R.scenario.bandwidthTBs} TB/s network), the gains are <strong className="num">{R.scenario.vsHBM}×</strong> over HBM and <strong className="num">{R.scenario.vsSRAM}×</strong> over SRAM.</p>,
-        <p key="2">It doesn’t win everywhere. For small speech models that fit on a single card, capacity doesn’t matter and raw bandwidth does. There, SRAM comes out on top. All of these numbers are <strong>modeled</strong>, not measured on a deployed system.</p>,
+        <p key="0">The paper’s performance model pairs the same compute logic with each type of memory and simulates serving several real models. Averaged across those models, 3D-DRAM delivers <strong className="num">{R.throughputVsHBM}×</strong> the tokens per second per card of HBM and <strong className="num">{R.throughputVsSRAM}×</strong> those of SRAM, and each user waits <strong className="num">{R.tpotLowerVsHBM}×</strong> less per token than with HBM.</p>,
+        <p key="1">In one specific setting, with a {R.scenario.contextLabel} context and a network with {R.scenario.latencyUs} µs latency and {R.scenario.bandwidthTBs} TB/s of bandwidth, the improvement is <strong className="num">{R.scenario.vsHBM}×</strong> over HBM and <strong className="num">{R.scenario.vsSRAM}×</strong> over SRAM.</p>,
+        <p key="2">Raptor doesn’t come out ahead in every case. Small speech models fit on a single card, so capacity stops mattering and raw bandwidth decides the outcome; for those, SRAM is fastest. All of these figures also come from a model rather than from measurements of a working deployment.</p>,
       ]}
       description={() => `Modeled results: ${R.throughputVsHBM} times the throughput per card of HBM, ${R.throughputVsSRAM} times that of SRAM, and ${R.tpotLowerVsHBM} times lower time per output token than HBM, averaged across models. In one scenario: ${R.scenario.vsHBM} times over HBM and ${R.scenario.vsSRAM} times over SRAM. Exception: for small speech models SRAM is fastest.`}
       visual={(s) => <Visual {...s} />}

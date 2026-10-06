@@ -92,16 +92,16 @@ export function S11Cards() {
     <Scene
       id="cards"
       num={11}
-      kicker="Fewer cards, less chatter"
-      title="More memory per card means fewer cards."
+      kicker="Fewer cards"
+      title="More memory per card means fewer cards"
       steps={[
-        <p key="0">Big models get split across many cards. How many depends mostly on memory per card. For DeepSeek-V3, the paper’s minimum setups work out to <strong className="num text-sram-ink">{ds('sram')}</strong> SRAM cards, <strong className="num" style={{ color: MEM_COLOR.dram3d }}>{ds('dram3d')}</strong> Raptor cards, or <strong className="num" style={{ color: MEM_COLOR.hbm }}>{ds('hbm')}</strong> HBM cards.</p>,
-        <p key="1">For the trillion-parameter Kimi K2 the gap is extreme: <strong className="num text-sram-ink">{ki('sram')}</strong> SRAM cards (a figure the paper states outright), versus <strong className="num" style={{ color: MEM_COLOR.dram3d }}>{ki('dram3d')}</strong> Raptor cards and <strong className="num" style={{ color: MEM_COLOR.hbm }}>{ki('hbm')}</strong> HBM cards. Pick any model to compare.</p>,
-        <p key="2">HBM needs even fewer cards, but each one reads memory at {MEMORY.hbm.bandwidthTBs} TB/s versus Raptor’s {MEMORY.dram3d.bandwidthTBs} TB/s. Capacity decides how many cards you need. Bandwidth decides how fast each one goes.</p>,
-        <p key="3">Why does card count matter? Cards working on one model constantly exchange partial results in group steps called <Term k="collective">collectives</Term>. Raptor’s links form a ladder: an on-chip network inside a chiplet, fast die-to-die links inside a module, then PCIe Gen 7 or Ethernet between modules and cards.</p>,
+        <p key="0">Large models are split across many cards, and the number of cards a model needs depends mostly on how much memory each one has. For DeepSeek-V3, the paper’s smallest workable setups need <strong className="num text-sram-ink">{ds('sram')}</strong> SRAM cards, <strong className="num" style={{ color: MEM_COLOR.dram3d }}>{ds('dram3d')}</strong> Raptor cards, or <strong className="num" style={{ color: MEM_COLOR.hbm }}>{ds('hbm')}</strong> HBM cards.</p>,
+        <p key="1">For Kimi K2, which has a trillion parameters, the gap is much wider: <strong className="num text-sram-ink">{ki('sram')}</strong> SRAM cards (a figure the paper gives directly), compared with <strong className="num" style={{ color: MEM_COLOR.dram3d }}>{ki('dram3d')}</strong> Raptor cards and <strong className="num" style={{ color: MEM_COLOR.hbm }}>{ki('hbm')}</strong> HBM cards. The menu in the figure lists the other models.</p>,
+        <p key="2">HBM needs even fewer cards, but each one reads memory at {MEMORY.hbm.bandwidthTBs} TB/s, compared with {MEMORY.dram3d.bandwidthTBs} TB/s for Raptor. Capacity determines how many cards a model needs, and bandwidth determines how quickly each of them works.</p>,
+        <p key="3">The number of cards matters because the cards working on one model constantly exchange partial results, in group operations called <Term k="collective">collectives</Term>. Raptor’s connections form a hierarchy: an on-chip network inside each chiplet, die-to-die links inside each module, and PCIe Gen 7 or Ethernet between modules and cards.</p>,
         <>
-          <p key="4">Fewer cards means smaller collectives, fewer trips up the ladder, and less sensitivity to how fast the network is.</p>
-          <Note>Footnote: Table II lists Llama-3.1 70B on a single 3D-DRAM card with {LF.dram3dMemGB} GB in total. That seems inconsistent with the ~{LF.weightsGB} GB of 8-bit weights in Sec I, and with Sec VI-D’s mention of TP = {LF.statedTP} on 3D-DRAM. We show Table II as printed.</Note>
+          <p key="4">With fewer cards, each collective involves fewer participants and less traffic has to cross the slowest links, so performance depends less on the speed of the network.</p>
+          <Note>Table II lists Llama-3.1 70B on a single 3D-DRAM card with {LF.dram3dMemGB} GB in total. That seems inconsistent with the roughly {LF.weightsGB} GB of 8-bit weights described in Sec I, and with the mention of TP = {LF.statedTP} on 3D-DRAM in Sec VI-D. We show Table II as printed.</Note>
         </>,
       ]}
       description={(s) => s.step >= 3
@@ -110,9 +110,9 @@ export function S11Cards() {
       visual={(s) => <Visual {...s} />}
       figure={(s) => s.step >= 3
         ? (s.step >= 4
-          ? { evidence: 'modeled' as const, caption: <>Raptor’s interconnect, from chiplet to rack. The network-sensitivity result comes from the paper’s performance model. Source: Sec VI-A, Sec VIII-C.</> }
-          : { caption: <>Raptor’s interconnect, from chiplet to rack. Source: Sec VI-A.</> })
-        : { evidence: 'derived' as const, caption: <>One square per card. Cards = total memory ÷ memory per card, from Table II and Table III. Kimi K2 on SRAM is stated outright in the paper.</> }}
+          ? { evidence: 'modeled' as const, caption: <>Raptor’s interconnect hierarchy, from a single chiplet out to the rack. The result on network sensitivity comes from the paper’s performance model. Source: Sec VI-A, Sec VIII-C.</> }
+          : { caption: <>Raptor’s interconnect hierarchy, from a single chiplet out to the rack. Source: Sec VI-A.</> })
+        : { evidence: 'derived' as const, caption: <>Each square is one card. Card counts are total memory divided by memory per card, from Tables II and III; the paper states the Kimi K2 figure for SRAM directly.</> }}
     />
   );
 }

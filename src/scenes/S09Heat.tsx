@@ -101,7 +101,7 @@ function RacePanel({ active, reduced }: { active: boolean; reduced: boolean }) {
   const refreshes = Array.from({ length: Math.floor(RH.attackMs / RH.refreshMs) }, (_, i) => (i + 1) * RH.refreshMs);
   return (
     <div className="flex h-full flex-col justify-center-safe gap-5">
-      <div className="text-sm text-muted">An attacker hammers one row, hoping to flip bits in its neighbour. They need <span className="num text-ink">{fmt(RH.threshold)}</span> activations, at <span className="num text-ink">{RH.tRCns} ns</span> each.</div>
+      <div className="text-sm text-muted">An attacker activates one row repeatedly, hoping to flip bits in the rows next to it. The attack needs <span className="num text-ink">{fmt(RH.threshold)}</span> activations, at <span className="num text-ink">{RH.tRCns} ns</span> each.</div>
       <div>
         <div className="mb-1 flex justify-between text-xs text-muted"><span>if nothing interrupted them</span><span className="num">{fmt(Math.round(ghost * RH.threshold))}</span></div>
         <div className="h-5 bg-surface-2"><div className="h-full bg-danger/50" style={{ width: `${ghost * 100}%` }} /></div>
@@ -215,20 +215,20 @@ export function S09Heat() {
     <Scene
       id="heat"
       num={9}
-      kicker="Problem 4 · Heat, refresh, rowhammer"
+      kicker="Problem 4 · Heat and refresh"
       eyebrow={<ProblemChips active={3} />}
-      title="A hot stack forgets faster."
+      title="Keeping a hot stack reliable"
       steps={[
-        <p key="0">DRAM stores each bit as a tiny charge that slowly leaks away, so every row must be <Term k="refresh">refreshed</Term> on a schedule. Below {R.hotThresholdC} °C, Raptor refreshes every <strong className="num">{R.coolIntervalMs} ms</strong>.</p>,
-        <p key="1">Stacked right against hot logic, the junction can reach <strong className="num">{R.maxJunctionC} °C</strong>, and hot cells leak faster. Above {R.hotThresholdC} °C the interval drops to <strong className="num">{R.hotIntervalMs} ms</strong>, {R.moreFrequentX}× more often than the {R.hbmNominalMs} ms typical for HBM. Drag the slider to see it.</p>,
+        <p key="0">DRAM stores each bit as a small electric charge that slowly leaks away, so every row has to be rewritten, or <Term k="refresh">refreshed</Term>, on a regular schedule. Below {R.hotThresholdC} °C, Raptor refreshes every <strong className="num">{R.coolIntervalMs} ms</strong>.</p>,
+        <p key="1">Because the DRAM is pressed against the logic, the junction can reach <strong className="num">{R.maxJunctionC} °C</strong>, and charge leaks faster when it’s hot. Above {R.hotThresholdC} °C, Raptor refreshes every <strong className="num">{R.hotIntervalMs} ms</strong>, {R.moreFrequentX}× as often as the {R.hbmNominalMs} ms interval that is typical for HBM. The temperature slider in the figure shows the change.</p>,
         <>
-          <p key="2">That sounds expensive, but Raptor’s banks are small: <strong className="num">{fmt(R.rowsPerBank)}</strong> rows each, {R.fewerRowsLabel} fewer than a conventional bank. Fewer rows means each refresh pass is quick.</p>
-          <Note>Each bank also stores error-correcting codes ({ECC.code}) in its last {ECC.columns} columns, plus background scrubbing to catch errors early.</Note>
+          <p key="2">Refreshing that often would usually be expensive, but Raptor’s banks are small. Each one has <strong className="num">{fmt(R.rowsPerBank)}</strong> rows, {R.fewerRowsLabel} fewer than a conventional DRAM bank, so a full refresh pass finishes quickly.</p>
+          <Note>Each bank also stores error-correcting codes ({ECC.code}) in its last {ECC.columns} columns, and the chip scrubs memory in the background to catch errors early.</Note>
         </>,
-        <p key="3">Measured on the chip: refreshing every {R.hotIntervalMs} ms costs just <strong className="num">{TABLE1.find((r) => r.intervalMs === R.hotIntervalMs)?.overheadPct}%</strong> of bandwidth.</p>,
-        <p key="4">Frequent refresh has a bonus. A <strong>rowhammer</strong> attack flips bits by hitting one row over and over. At this chip’s settings that takes about {RH.attackMs} ms of nonstop hammering, but every row is refreshed every {RH.refreshMs} ms, which wipes the attacker’s progress. They never get there.</p>,
-        <p key="5">Where does the heat go? Up, through the logic die, the lid and the heatsink. The DRAM sits <em>below</em> the logic, so it stays about <strong className="num">{TH.dramCoolerC} °C cooler</strong>, the opposite of HBM, where memory sits above hot logic. The stacking itself adds only about {TH.dieStackShareRthetaPct}% to the thermal resistance.</p>,
-        <p key="6">At Raptor’s ~{TH.chipletW} W per chiplet, ordinary air cooling isn’t enough: it only handles {air.maxChipletW} W. The paper’s optimized heatsink peaks around <strong className="num">{opt.peakAt106C} °C</strong> with headroom to about {opt.headroomW} W, and liquid cooling stays under {liquid.belowC} °C.</p>,
+        <p key="3">Measurements on the chip confirm this. Refreshing every {R.hotIntervalMs} ms costs only <strong className="num">{TABLE1.find((r) => r.intervalMs === R.hotIntervalMs)?.overheadPct}%</strong> of the bandwidth.</p>,
+        <p key="4">Frequent refresh also protects against <strong>rowhammer</strong>, an attack that flips bits by activating one row over and over. With this chip’s timing, an attacker needs about {RH.attackMs} ms of continuous activations to reach the threshold, but every row is refreshed every {RH.refreshMs} ms, which resets the count before it gets there.</p>,
+        <p key="5">Heat leaves the stack upward, through the logic die, the lid and the heatsink. Since the DRAM is underneath the logic, it runs about <strong className="num">{TH.dramCoolerC} °C cooler</strong> than the logic. In HBM the arrangement is reversed, with the memory sitting on top of hot logic. The stacking itself adds only about {TH.dieStackShareRthetaPct}% to the thermal resistance.</p>,
+        <p key="6">Each chiplet draws about {TH.chipletW} W. With ordinary air cooling, only {air.maxChipletW} W per chiplet stays under the {TH.limitC} °C limit, so the paper models an optimized heatsink that keeps the peak near <strong className="num">{opt.peakAt106C} °C</strong>, with headroom up to about {opt.headroomW} W. Liquid cooling would keep it under {liquid.belowC} °C.</p>,
       ]}
       description={(s) => [
         `Refresh timeline at a cool temperature: refresh every ${R.coolIntervalMs} ms, compared with HBM's ${R.hbmNominalMs} ms. A temperature slider is available.`,
@@ -241,11 +241,11 @@ export function S09Heat() {
       ][Math.min(s.step, 6)]}
       visual={(s) => <Visual {...s} />}
       figure={(s) => [
-        { caption: <>Refresh schedule at the slider’s temperature, compared with HBM’s nominal interval. Interactive. Source: Sec IV-E, Sec V-B.</> },
-        { caption: <>Refresh schedule at the slider’s temperature, compared with HBM’s nominal interval. Interactive. Source: Sec IV-E, Sec V-B.</> },
+        { caption: <>Refresh schedule at the slider’s temperature, compared with HBM’s nominal interval. Use the slider to change the temperature. Source: Sec IV-E, Sec V-B.</> },
+        { caption: <>Refresh schedule at the slider’s temperature, compared with HBM’s nominal interval. Use the slider to change the temperature. Source: Sec IV-E, Sec V-B.</> },
         { caption: <>Rows per bank, Raptor against a conventional DRAM bank; the hatched range spans {R.fewerRowsLabel}. Source: Sec IV-E.</> },
         { evidence: 'measured' as const, caption: <>Measured bandwidth lost to refresh at three refresh intervals, and the bandwidth left over. Source: Table I.</> },
-        { caption: <>A rowhammer race on the chip’s timings. The threshold of {fmt(RH.threshold)} activations {RH.thresholdNote}. The peak count per refresh window is our arithmetic. Source: Sec V-B.</> },
+        { caption: <>A rowhammer attack played out with the chip’s timings. The threshold of {fmt(RH.threshold)} activations {RH.thresholdNote}. The peak count per refresh window is our arithmetic. Source: Sec V-B.</> },
         { evidence: 'modeled' as const, caption: <>Cross-section of the stack, not to scale. Heat flows up to the heatsink; the share of thermal resistance comes from the paper’s analytical model. Source: Sec V-C, Fig. 12.</> },
         { evidence: 'modeled' as const, caption: <>From the paper’s analytical thermal model, not a silicon measurement. The dashed line marks Raptor’s operating point. Source: Sec V-C, Fig. 12.</> },
       ][Math.min(s.step, 6)]}

@@ -91,24 +91,24 @@ export function S03Pantry() {
     <Scene
       id="pantry"
       num={3}
-      kicker="Three kinds of pantry"
-      title="Fast or big: today’s memory makes you choose."
+      kicker="Three kinds of memory"
+      title="Memory is usually either fast or large"
       steps={[
         <>
-          <p key="a"><strong className="text-sram-ink">SRAM</strong> sits on the processor itself. It is blazingly fast ({sram.bandwidthTBs} TB/s per card in the paper’s comparison), but tiny: just <strong className="num">{sram.capacityGB} GB</strong>. The paper’s Llama-class example, with {KV_INTRO.weightsGB} GB of weights, would have to be spread across many cards.</p>
-          <Chef>SRAM is a countertop: everything within arm’s reach, but there’s barely room for anything.</Chef>
+          <p key="a"><strong className="text-sram-ink">SRAM</strong> is built into the processor itself. It is very fast, {sram.bandwidthTBs} TB/s per card in the paper’s comparison, but there is little of it: <strong className="num">{sram.capacityGB} GB</strong>. The paper’s {KV_INTRO.modelLabel} example, with {KV_INTRO.weightsGB} GB of weights, would have to be spread across many cards.</p>
+          <Chef>SRAM is like a countertop. Everything is within reach, but there isn’t much room.</Chef>
         </>,
         <>
-          <p key="b"><strong style={{ color: MEM_COLOR.hbm }}>HBM</strong> stacks memory chips beside the processor. Plenty of room, <strong className="num">{hbm.capacityGB} GB</strong>, but data flows at only <strong className="num">{hbm.bandwidthTBs} TB/s</strong>.</p>
-          <Chef>HBM is a big pantry down the hall, with one door.</Chef>
+          <p key="b"><strong style={{ color: MEM_COLOR.hbm }}>HBM</strong> places stacks of memory chips next to the processor. It holds much more, <strong className="num">{hbm.capacityGB} GB</strong> per card, but delivers <strong className="num">{hbm.bandwidthTBs} TB/s</strong>.</p>
+          <Chef>HBM is a large pantry down the hall with a single door.</Chef>
         </>,
         <>
-          <p key="c"><strong style={{ color: MEM_COLOR.dram3d }}>Raptor’s 3D-DRAM</strong> stacks memory directly under the processor: <strong className="num">{dram3d.bandwidthTBs} TB/s</strong> and <strong className="num">{dram3d.capacityGB} GB</strong> per card. Not the fastest, not the biggest, but much closer to both corners at once.</p>
-          <Chef>3D-DRAM is a pantry built right under the kitchen, with hundreds of trapdoors.</Chef>
+          <p key="c"><strong style={{ color: MEM_COLOR.dram3d }}>Raptor’s 3D-DRAM</strong> sits directly underneath the processor and provides <strong className="num">{dram3d.bandwidthTBs} TB/s</strong> and <strong className="num">{dram3d.capacityGB} GB</strong> per card. It is neither the fastest nor the largest of the three, but it comes much closer to offering both.</p>
+          <Chef>3D-DRAM is a pantry built directly beneath the kitchen, with a trapdoor under every workstation.</Chef>
         </>,
         <>
-          <p key="d">One way to feel the difference: divide <Term k="bandwidth">bandwidth</Term> by <Term k="capacity">capacity</Term>. That tells you how many times per second a card could sweep through <em>all</em> of its memory, which is roughly what decoding asks for.</p>
-          <Note>This is our arithmetic, not a number from the paper. In the paper’s comparison all three use the same {XPU_PFLOPS} PFLOPS compute logic; only the memory changes.</Note>
+          <p key="d">One way to compare them is to divide <Term k="bandwidth">bandwidth</Term> by <Term k="capacity">capacity</Term>. The result is the number of times per second a card could read through all of its memory, which is roughly the kind of work that decoding asks for.</p>
+          <Note>This calculation is ours rather than the paper’s. In the paper’s comparison, all three memories are paired with the same {XPU_PFLOPS} PFLOPS compute logic.</Note>
         </>,
       ]}
       description={(s) =>

@@ -95,7 +95,8 @@ Every number below is a key in `src/data/paper.ts`. Labels used:
 - **Numbers:** `STACKING.microbumpPitchUm` (36), `STACKING.ioPJPerBit` (0.45), `STACKING.vsHBM3EnergyX` (6), `STACKING.logicProcess` (TSMC N4P). Particle counts and rates are illustrative.
 - **Fallback:** a two-panel SVG (side-by-side vs stacked) with arrow density showing the same contrast.
 
-## Scene 5 · Powers-of-ten zoom *(3D → 2D, design)*
+## Scene 5 · Powers-of-ten zoom *(2D, design)*
+- **Revised:** a single nested 2D drawing with a smooth zoom camera replaced the original 3D-then-SVG version, which cropped badly and jumped between styles.
 - **Idea:** Raptor is nested boxes, built so that every small compute engine has its own private pipe into the memory directly beneath it.
 - **Visual:** A continuous zoom with a breadcrumb at the top: **Card › MCM › Chiplet › Gang › Slice › Bank**. The first three levels are 3D (geometry and depth matter there). From Gang inward it crossfades to crisp 2D SVG, which is clearer for grids. Each level shows at most three facts in a side ledger.
 - **Scroll:** one step per level:

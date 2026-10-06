@@ -4,7 +4,7 @@ import { ProblemChips } from '../components/Problems';
 import { Term } from '../components/ui';
 import { BANK_BUDGET as BB, BANKS_SHORT, LAYER_EXAMPLE as LX, STREAM_BLOCKING as SB } from '../data/paper';
 import { TOY } from '../data/illustrative';
-import { fmt } from '../lib/fmt';
+import { fmt, numberWord } from '../lib/fmt';
 import { P, CHUNK_INKS } from '../lib/palette';
 
 const CHUNK_COLORS = CHUNK_INKS;
@@ -209,18 +209,18 @@ export function S06StreamBlocking() {
       num={6}
       kicker="Problem 1 · Stream blocking"
       eyebrow={<ProblemChips active={0} />}
-      title="An awkward number of banks."
+      title="Fitting 128-byte chunks into three banks"
       steps={[
-        <p key="0">Each tensor engine takes data in <Term k="chunk">chunks</Term> of <strong className="num">{BB.chunkBytes} bytes</strong>. A bank hands over <strong className="num">{BB.bytesPerBankRead} bytes</strong> per read, so the tidy design is {BB.banksPerChannelIdeal} banks per channel. With <strong className="num">{BB.channelsPerChiplet}</strong> channels per chiplet, that’s <strong className="num">{fmt(BB.banksNeeded)}</strong> banks.</p>,
-        <p key="1">The DRAM die has <strong className="num">{BB.banksOnDie}</strong>.</p>,
-        <p key="2">Raptor also sets <strong className="num">{BB.spares}</strong> aside as spares (Problem 3 explains why). That leaves <strong className="num">{BB.usable}</strong>: exactly <strong className="num">{BB.banksPerChannel}</strong> banks for each of the {BB.channelsPerChiplet} channels.</p>,
-        <p key="3">But {BB.banksPerChannel} banks hand over <strong className="num">{BB.bytesPerThreeBankRead} bytes</strong> per read, not {BB.chunkBytes}. Every chunk now takes {BB.readsPerChunk} reads, and the pieces don’t line up with chunk boundaries.</p>,
-        <p key="4">The obvious fix is to shuffle. Read {BB.readsPerChunk} columns ({SB.naiveBufferBytes} bytes) into a buffer, shift the right pieces into place, and track a different pattern for every address. It works, but it’s fiddly circuitry that is hard to run fast.</p>,
+        <p key="0">Each tensor engine receives data in <Term k="chunk">chunks</Term> of <strong className="num">{BB.chunkBytes} bytes</strong>. A single bank returns <strong className="num">{BB.bytesPerBankRead} bytes</strong> per read, so the natural design would give every channel {BB.banksPerChannelIdeal} banks. With <strong className="num">{BB.channelsPerChiplet}</strong> channels per chiplet, that would take <strong className="num">{fmt(BB.banksNeeded)}</strong> banks.</p>,
+        <p key="1">The DRAM die, however, has only <strong className="num">{BB.banksOnDie}</strong> banks.</p>,
+        <p key="2">The design also keeps <strong className="num">{BB.spares}</strong> of them in reserve as spares, for reasons covered in the third problem. That leaves <strong className="num">{BB.usable}</strong>, which works out to exactly <strong className="num">{BB.banksPerChannel}</strong> banks for each of the {BB.channelsPerChiplet} channels.</p>,
+        <p key="3">Three banks return <strong className="num">{BB.bytesPerThreeBankRead} bytes</strong> per read rather than {BB.chunkBytes}. Every chunk therefore takes {numberWord(BB.readsPerChunk)} reads, and the boundaries between chunks no longer line up with the boundaries between reads.</p>,
+        <p key="4">One way to handle this is to read {numberWord(BB.readsPerChunk)} columns into a {SB.naiveBufferBytes}-byte buffer and shift the pieces into place, tracking a different alignment for each address. That works, but the extra circuitry is complicated and makes it harder to run the memory controller at high speed.</p>,
         <>
-          <p key="5">Raptor fixes it in how the software <em>lays out</em> data. This is <strong>stream blocking</strong>. Each chunk is split into a <strong className="num">{SB.alignedBytes}-byte</strong> part stored straight across the {BB.banksPerChannel} banks, plus a <strong className="num">{SB.partialBytes}-byte</strong> leftover. Leftovers from neighbouring chunks are packed together.</p>
-          <p>Every chunk is then read the same way: one read for the leftovers (kept in a small {SB.smallBufferBytes}-byte cache), one for the main part. Two fixed reads, nothing wasted.</p>
+          <p key="5">Raptor deals with the problem in the way the software lays out data, a technique the paper calls <strong>stream blocking</strong>. Each chunk is split into a <strong className="num">{SB.alignedBytes}-byte</strong> part, stored across the {BB.banksPerChannel} banks at the same column, and a <strong className="num">{SB.partialBytes}-byte</strong> remainder. Remainders from neighboring chunks are packed together in a separate region.</p>
+          <p>Every chunk can then be read in the same way. One read brings a column of remainders into a small {SB.smallBufferBytes}-byte cache, and a second read fetches the main part. The access pattern never changes and no bytes are wasted.</p>
         </>,
-        <p key="6">Does it waste space? The paper works through one layer of {LX.model} at {LX.contextLabel} context: <strong className="num">{LX.layerMB} MB</strong> of KV cache, split into <strong className="num">{fmt(LX.tiles)}</strong> tiles of {LX.tileKB} KB, {LX.tilesPerChannel} per channel. That fills about {LX.rowsUsed} of a bank’s {fmt(LX.rowsTotal)} rows, <strong>{LX.fillLabel}</strong>.</p>,
+        <p key="6">The layout doesn’t take up much room. The paper works through one attention layer of {LX.model} at {LX.contextLabel} context, which needs <strong className="num">{LX.layerMB} MB</strong> of KV cache. Stream blocking splits it into <strong className="num">{fmt(LX.tiles)}</strong> tiles of {LX.tileKB} KB, {LX.tilesPerChannel} per channel, and these occupy about {LX.rowsUsed} of each bank’s {fmt(LX.rowsTotal)} rows, {LX.fillLabel}.</p>,
       ]}
       description={(s) => [
         `Grid of ${BB.banksNeeded} squares: ${BB.channelsPerChiplet} channels times ${BB.banksPerChannelIdeal} banks would be needed.`,
@@ -233,9 +233,9 @@ export function S06StreamBlocking() {
       ][Math.min(s.step, 6)]}
       visual={(s) => <Visual {...s} />}
       figure={(s) => ({
-        caption: s.step <= 2 ? <>Each square is one DRAM bank on a chiplet. Source: Sec IV-C.</>
+        caption: s.step <= 2 ? <>Each square represents one DRAM bank on a chiplet. Source: Sec IV-C.</>
           : s.step >= 6 ? <>The paper’s worked example: one attention layer’s KV cache, laid out with stream blocking. Source: Sec III-E.</>
-            : <>One channel of {BB.banksPerChannel} banks. Colors tell chunks apart; outlined columns are the ones read for the highlighted chunk. Illustration of Sec IV-C.</>,
+            : <>One channel of {BB.banksPerChannel} banks. Each color is a different chunk, and the outlined columns are the ones read to assemble the highlighted chunk. A schematic of the layouts described in Sec IV-C.</>,
       })}
     />
   );

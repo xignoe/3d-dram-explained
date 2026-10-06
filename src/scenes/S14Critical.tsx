@@ -4,24 +4,24 @@ import { CRITICAL as C, HIERARCHY } from '../data/paper';
 
 const ITEMS: { title: string; body: ReactNode }[] = [
   {
-    title: 'Modeled, not measured',
-    body: <>The memory itself was measured on silicon: bandwidth, latency, energy and refresh. The serving results (throughput, interactivity, network sensitivity) come from a performance model, and the thermal results from an analytical one.</>,
+    title: 'The serving results are modeled',
+    body: <>The memory system was measured on silicon: its bandwidth, latency, energy and refresh overhead. The serving results (throughput, interactivity and sensitivity to the network) come from a performance model, and the thermal results come from an analytical one.</>,
   },
   {
-    title: 'Same brain, different pantry',
-    body: <>Every comparison uses d-Matrix’s own {C.sharedComputePFLOPS} PFLOPS compute logic paired with different memory. That isolates the memory question nicely, but none of the baselines is a real GPU or another vendor’s chip.</>,
+    title: 'The baselines share Raptor’s compute logic',
+    body: <>Every comparison pairs d-Matrix’s own {C.sharedComputePFLOPS} PFLOPS compute logic with a different kind of memory. That isolates the effect of the memory, which is useful, but none of the baselines is an actual GPU or another company’s chip.</>,
   },
   {
-    title: 'Per card, not per dollar or per watt',
-    body: <>Results are reported per card. Cost and whole-system power comparisons aren’t given, so “better per card” doesn’t automatically mean cheaper to run.</>,
+    title: 'Results are given per card',
+    body: <>The paper reports performance per card. It doesn’t compare cost or total system power, so better performance per card doesn’t necessarily mean a cheaper system to run.</>,
   },
   {
-    title: `${C.fastMemoryPerCardGB} GB is still small`,
-    body: <>Fast memory per card is far below HBM’s capacity. Large models still need many cards, or the slower {HIERARCHY.mcm.lpddrGB} GB LPDDR5X tier on each module.</>,
+    title: `${C.fastMemoryPerCardGB} GB of fast memory is still not much`,
+    body: <>Each card has far less fast memory than an HBM card. Large models still need many cards, or have to rely on the slower {HIERARCHY.mcm.lpddrGB} GB of LPDDR5X on each module.</>,
   },
   {
-    title: `Batch size ${C.batchSize} rests on a simple simulation`,
-    body: <>The operating batch size is justified by a {C.simulatedSeconds}-second queueing simulation at {C.arrivalRate} requests per second. Reasonable, but real traffic is burstier and more varied.</>,
+    title: 'The batch size comes from a short simulation',
+    body: <>The batch size of {C.batchSize} used throughout the evaluation is justified by a {C.simulatedSeconds}-second queueing simulation at {C.arrivalRate} requests per second. That is a reasonable choice, but real traffic is burstier and more varied.</>,
   },
 ];
 
@@ -32,10 +32,10 @@ export function S14Critical() {
         <div>
           <div className="flex items-end gap-4">
             <span className="section-num" aria-hidden>14</span>
-            <span className="kicker pb-1.5">Read this critically</span>
+            <span className="kicker pb-1.5">Limitations</span>
           </div>
-          <h2 id="critical-title" className="mt-3 text-[2rem] font-medium leading-[1.08] tracking-[-0.015em] lg:text-[2.6rem]">Promising early silicon. Here’s what it doesn’t show yet.</h2>
-          <p className="mt-4 text-xl italic leading-snug text-muted">None of this undercuts the core idea. It’s about knowing which claims are measured and which are projections.</p>
+          <h2 id="critical-title" className="mt-3 text-[2rem] font-medium leading-[1.08] tracking-[-0.015em] lg:text-[2.6rem]">What the paper doesn’t show yet</h2>
+          <p className="mt-4 text-xl italic leading-snug text-muted">None of this undermines the main idea, but it is worth knowing which results were measured and which are projections.</p>
         </div>
         <ol className="mt-10 lg:mt-0">
           {ITEMS.map((it, i) => (
@@ -50,7 +50,7 @@ export function S14Critical() {
         </ol>
       </div>
       <div className="mx-auto mt-10 max-w-[1100px] lg:pl-[calc(22rem+4rem)]">
-        <Chef>The chef really does get a pantry under the kitchen. It’s a faster pantry, not a magic one.</Chef>
+        <Chef>To finish the analogy: the pantry has moved under the kitchen and the trips are much shorter, but it is still a fairly small pantry.</Chef>
       </div>
     </section>
   );

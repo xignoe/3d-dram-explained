@@ -93,21 +93,21 @@ export function S04Stacking() {
     <Scene
       id="stacking"
       num={4}
-      kicker="Why stacking wins"
-      title="Turn the edge into a surface."
+      kicker="Stacking"
+      title="Why it helps to put the memory underneath"
       steps={[
         <>
-          <p key="a">In most AI accelerators, memory sits <strong>beside</strong> the processor. HBM stacks connect along one edge, so every byte the chip needs has to squeeze through that narrow border.</p>
-          <Chef>A big pantry down the hall, with one door. Everyone queues at the door.</Chef>
+          <p key="a">In most AI accelerators the memory sits beside the processor, and HBM stacks connect to it along one edge. Everything the chip reads from memory has to cross that boundary.</p>
+          <Chef>This is the pantry down the hall: there is plenty of space, but everyone uses the same door.</Chef>
         </>,
-        <p key="b">Raptor flips the arrangement. Its logic die ({STACKING.logicProcess}) is bonded <strong>face to face</strong> onto a DRAM die, so the memory sits directly underneath the compute.</p>,
+        <p key="b">Raptor stacks the two instead. Its logic die, made on TSMC’s {STACKING.logicProcess.replace('TSMC ', '')} process, is bonded face to face with a DRAM die, so the memory sits directly beneath the circuits that use it.</p>,
         <>
-          <p key="c">Now the connection isn’t an edge. It’s the <strong>whole surface</strong>. A dense field of microscopic <Term k="ubump">µbumps</Term> runs straight down, each carrying one bit per cycle, all at once.</p>
-          <Chef>The pantry is right under the kitchen, with hundreds of trapdoors.</Chef>
+          <p key="c">The connection between memory and logic now covers the whole area of the die instead of a strip along one edge. A dense array of microscopic solder bumps, called <Term k="ubump">µbumps</Term>, joins the two dies, and each bump carries one bit per clock cycle.</p>
+          <Chef>The pantry is now directly below the kitchen, and the trips are short.</Chef>
         </>,
         <>
-          <p key="d">The connectors are just <strong className="num">{STACKING.microbumpPitchUm} µm</strong> apart. Because each wire is so short, moving a bit costs about <strong className="num">{STACKING.ioPJPerBit} pJ</strong>, roughly <strong>{STACKING.vsHBM3EnergyX}× less</strong> than reported for HBM3.</p>
-          <p>Short wires cut the energy per bit. Having so many of them is where the bandwidth comes from.</p>
+          <p key="d">The bumps are <strong className="num">{STACKING.microbumpPitchUm} µm</strong> apart. Because each connection is so short, moving a bit costs about <strong className="num">{STACKING.ioPJPerBit} pJ</strong>, which the paper puts at roughly {STACKING.vsHBM3EnergyX}× less than reported figures for HBM3.</p>
+          <p>Short connections lower the energy per bit, and the sheer number of them is what provides the bandwidth.</p>
         </>,
       ]}
       description={(s) =>
@@ -117,7 +117,7 @@ export function S04Stacking() {
       }
       visual={(s) => <Visual {...s} />}
       figure={(s) => s.step < 3
-        ? { caption: <>Two ways to attach memory. Beside the processor, data crosses one narrow edge. Stacked face to face, it crosses the whole die. Illustration.</> }
+        ? { caption: <>Two ways of connecting memory to a processor. When the memory sits beside the processor, data crosses one narrow edge; when the two dies are stacked face to face, data crosses the whole die. Schematic illustration.</> }
         : { evidence: 'measured', caption: <>The energy per bit (■) was measured on Raptor silicon. The bump pitch is a design figure, and the HBM3 comparison is against reported values. Source: Sec IV-B, Sec IV-D.</> }}
     />
   );

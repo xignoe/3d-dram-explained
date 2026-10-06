@@ -14,6 +14,12 @@ export const TOY = {
   rainParticles: 1400,
   particleSpeed: 0.35,
 
+  // Scene 5: how many rows/columns to draw inside the zoomed-in bank (the real bank is 1,364 x 124)
+  bankRowsDrawn: 26,
+  bankColsDrawn: 12,
+  bankColHighlighted: 4,
+  zoomMs: 1100,
+
   // Scene 6: columns drawn per bank in the channel close-up
   channelColumnsShown: 8,
   budgetGridColumns: 32,

@@ -54,10 +54,10 @@ export const CITATION = {
 // ---------------------------------------------------------------------------
 
 export const PROBLEMS = [
-  { short: 'Awkward bank count', paper: 'workload-aware mapping to exploit parallelism', scene: 'stream-blocking' }, // Abstract (1)
-  { short: 'Switching power', paper: 'power optimization without burst-based data bus inversion (DBI)', scene: 'stream-flipping' }, // Abstract (2)
-  { short: 'Defective banks', paper: 'resilience with high bank counts', scene: 'bank-chaining' }, // Abstract (3)
-  { short: 'Heat', paper: 'thermal reliability at elevated junction temperatures', scene: 'heat' }, // Abstract (4)
+  { short: 'Mapping data to banks', paper: 'workload-aware mapping to exploit parallelism', scene: 'stream-blocking' }, // Abstract (1)
+  { short: 'Switching energy', paper: 'power optimization without burst-based data bus inversion (DBI)', scene: 'stream-flipping' }, // Abstract (2)
+  { short: 'Faulty banks', paper: 'resilience with high bank counts', scene: 'bank-chaining' }, // Abstract (3)
+  { short: 'Heat and refresh', paper: 'thermal reliability at elevated junction temperatures', scene: 'heat' }, // Abstract (4)
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -249,7 +249,7 @@ export const LAYER_EXAMPLE = {
   tilesPerChannel: 64, // Sec III-E ("64 tiles/channel")
   rowsUsed: 128, // Sec III-E ("~128 of 1364 rows per bank")
   rowsTotal: 1364, // Sec III-E
-  fillLabel: 'under 10%', // Sec III-E ("(<10%)")
+  fillLabel: 'less than 10%', // Sec III-E ("(<10%)")
   precision: 'FP16', // Sec III-E
 } as const;
 

@@ -16,8 +16,10 @@ import { S13Pairings } from './scenes/S13Pairings';
 import { S14Critical } from './scenes/S14Critical';
 import { Footer } from './components/Footer';
 import { ProgressBar } from './components/ProgressBar';
+import { useScrollRefresh } from './lib/useScrollRefresh';
 
 export default function App() {
+  useScrollRefresh();
   return (
     <>
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-surface focus:px-3 focus:py-2">Skip to content</a>

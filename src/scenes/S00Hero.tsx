@@ -64,17 +64,17 @@ export function Hero() {
           <div>
             <p className="kicker">The memory wall</p>
             <h1 className="mt-4 max-w-[15ch] text-[2.75rem] font-medium leading-[1.02] tracking-[-0.022em] sm:text-6xl lg:text-[5.1rem]">
-              AI inference is limited by moving data, not by math.
+              Running a language model is largely a memory problem.
             </h1>
             <p className="mt-6 max-w-[36ch] text-[1.35rem] italic leading-snug text-muted">
-              How one chip puts its memory directly underneath its compute, and the {numberWord(PROBLEMS.length)} problems that created.
+              Raptor, a chip from d-Matrix, puts its memory directly underneath its processor. This is a guide to why that helps, and to the {numberWord(PROBLEMS.length)} engineering problems it created.
             </p>
             <p className="sans mt-6 max-w-[52ch] text-sm leading-relaxed text-muted">
-              Based on “{CITATION.title}” by {CITATION.authors[0]} and colleagues at {CITATION.affiliations[0]}, presented at ISCA {CITATION.year}. Raptor reaches about{' '}
+              Based on “{CITATION.title},” by {CITATION.authors[0]} and colleagues at {CITATION.affiliations[0]} and the {CITATION.affiliations[1]}, presented at ISCA {CITATION.year}. The paper reports about{' '}
               <span className="num text-ink">{HERO.bandwidthPerCardTBs} TB/s</span> of memory <Term k="bandwidth">bandwidth</Term> per card.
             </p>
             <div className="max-w-[40ch]">
-              <Chef>Picture a chef who cooks instantly but has to fetch every ingredient from a pantry. The cooking is never the slow part.</Chef>
+              <Chef>A picture worth keeping in mind: a chef who can cook any dish instantly but has to fetch every ingredient from a pantry. How quickly the kitchen works depends almost entirely on the pantry.</Chef>
             </div>
             <div className="sans mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted">
               <span>How to read the figures:</span>
@@ -89,7 +89,7 @@ export function Hero() {
                 <HeroChiplet explodeRef={explode} active={inView} />
               </Gate3D>
             </div>
-            <figcaption className="fig-caption">One Raptor chiplet, pulled apart. A logic die sits face to face on a DRAM die whose surface is divided into {fmt(HIERARCHY.chiplet.banks)} banks. Thousands of microscopic bumps join the two.</figcaption>
+            <figcaption className="fig-caption">One Raptor chiplet, with its two dies pulled apart. The logic die sits face to face on a DRAM die whose surface is divided into {fmt(HIERARCHY.chiplet.banks)} banks, and thousands of microscopic bumps connect the two.</figcaption>
           </figure>
         </div>
       </div>

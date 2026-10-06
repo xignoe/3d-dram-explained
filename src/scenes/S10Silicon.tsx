@@ -50,13 +50,13 @@ export function S10Silicon() {
       id="silicon"
       num={10}
       kicker="Measured on silicon"
-      title="What the real chip does."
+      title="Measurements from the first chips"
       steps={[
-        <p key="0">Everything so far was design. This part was <strong>measured</strong> on the first Raptor silicon. At its {S.designMHz} MHz design target, a chunk arrives in about <strong className="num">{S.flitLatencyNs} ns</strong> on average, and a card moves about <strong className="num">{S.bandwidthPerCardTBs} TB/s</strong>.</p>,
-        <p key="1">The team also swept the DRAM clock from {S.freqMinMHz} MHz to {S.freqMaxMHz / 1000} GHz. Faster clocks raise bandwidth and cut latency, as you’d hope.</p>,
+        <p key="0">Most of what came before describes the design. The figures in this section were <strong>measured</strong> on the first Raptor silicon. At the {S.designMHz} MHz design target, a chunk arrives in about <strong className="num">{S.flitLatencyNs} ns</strong> on average, and a card moves about <strong className="num">{S.bandwidthPerCardTBs} TB/s</strong>.</p>,
+        <p key="1">The team also varied the DRAM clock between {S.freqMinMHz} MHz and {S.freqMaxMHz / 1000} GHz. A faster clock raised bandwidth and lowered latency, as expected.</p>,
         <>
-          <p key="2">Part of the reason is stream blocking. Each row of a bank holds several chunks, so opening a row once and streaming through it spreads the cost of opening it across many chunks.</p>
-          <Note>Elsewhere this page uses the paper’s headline figure of {HERO.bandwidthPerCardTBs} TB/s, which it quotes for the configuration with refresh and error scrubbing running (Sec VII-A). The {S.bandwidthPerCardTBs} TB/s here is the Fig. 9 measurement.</Note>
+          <p key="2">Stream blocking contributes to these results. Each row of a bank holds several chunks, so the cost of opening a row is shared among all the chunks that are read from it.</p>
+          <Note>Elsewhere this page uses the paper’s headline figure of {HERO.bandwidthPerCardTBs} TB/s, which the paper quotes for operation with refresh and error scrubbing running (Sec VII-A). The {S.bandwidthPerCardTBs} TB/s here is the measurement shown in its Fig. 9.</Note>
         </>,
       ]}
       description={(s) => `Measured: about ${S.flitLatencyNs} nanoseconds per chunk and about ${S.bandwidthPerCardTBs} terabytes per second per card at ${S.designMHz} megahertz.` + (s.step >= 1 ? ` Two trend lines without values: latency falls and bandwidth rises as DRAM frequency increases from ${S.freqMinMHz} megahertz to ${S.freqMaxMHz / 1000} gigahertz.` : '')}

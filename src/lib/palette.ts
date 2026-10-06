@@ -25,6 +25,7 @@ export const P = {
   logicDark: '#9a907e',
   te: '#e4d6b8',
   lpddr: '#c2a670',
+  gold: '#c9a24e',
   copper: '#b5774a',
   tim: '#b3aa98',
   heat: '#c4532f',

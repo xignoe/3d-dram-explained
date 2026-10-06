@@ -160,15 +160,15 @@ export function S07StreamFlipping() {
       num={7}
       kicker="Problem 2 · Stream flipping"
       eyebrow={<ProblemChips active={1} />}
-      title="Every wire that flips costs energy."
+      title="Reducing the energy spent switching wires"
       steps={[
-        <p key="0">Each wire between the dies carries a 0 or a 1. Every time a wire <strong>switches</strong> from one to the other, it burns a little energy. Multiply that by the stack’s enormous number of wires, and at {SF.atBandwidthTBs} TB/s a Raptor card would spend about <strong className="num">{SF.ioPowerAt100TBsW} W</strong> on that alone.</p>,
-        <p key="1">Here is a stream of {SF.chunkBytes}-byte chunks going over the wires, newest at the top. Orange squares are wires that had to switch. The counter keeps climbing.</p>,
+        <p key="0">Each connection between the two dies carries either a 0 or a 1, and a little energy is spent every time a connection changes from one value to the other. There are so many connections that, at {SF.atBandwidthTBs} TB/s, a Raptor card would spend about <strong className="num">{SF.ioPowerAt100TBsW} W</strong> just on switching them.</p>,
+        <p key="1">The figure shows a stream of {SF.chunkBytes}-byte chunks crossing the connections, with the newest at the top. Orange cells mark connections whose value changed since the previous chunk, and the counter keeps a running total.</p>,
         <>
-          <p key="2">Ordinary memory has a trick for this (<Term k="dbi">data bus inversion</Term>), but it needs an extra pin and a multi-cycle burst, and Raptor’s stacked interface has neither. So Raptor does it in the memory controller instead: <strong>stream flipping</strong>.</p>
-          <p>If sending a chunk as-is would switch more than half the wires, send it <strong>inverted</strong>, and store a single flag bit saying so. On the way back, the flag says whether to flip it back.</p>
+          <p key="2">Conventional memory reduces switching with a technique called <Term k="dbi">data bus inversion</Term>, but that relies on an extra signal pin and on data arriving in bursts over several clock cycles. Raptor’s stacked interface has neither, so the same job is done in the memory controller instead. The paper calls this <strong>stream flipping</strong>.</p>
+          <p>If sending a chunk as it is would switch more than half of the connections, the controller sends the inverted chunk and stores one extra bit to record that it did. When the chunk is read back, that bit tells the controller to invert it again.</p>
         </>,
-        <p key="3">Measured on the chip, the worst case is <strong className="num">{SF.beforePJPerBit} pJ/bit</strong>. Stream flipping brings effective switching down to {SF.effectiveSwitching} and energy to <strong className="num">{SF.afterPJPerBit} pJ/bit</strong>, an <strong>{SF.reductionPct}% cut</strong> with no extra pins.</p>,
+        <p key="3">On the chip, the worst case measured <strong className="num">{SF.beforePJPerBit} pJ</strong> per bit. With stream flipping the effective switching rate falls to {SF.effectiveSwitching}, and the energy to <strong className="num">{SF.afterPJPerBit} pJ</strong> per bit, a reduction of {SF.reductionPct}% that needed no additional pins.</p>,
       ]}
       description={(s) =>
         s.step === 0 ? `Large number: about ${SF.ioPowerAt100TBsW} watts of I/O power per card at ${SF.atBandwidthTBs} TB/s.`
@@ -177,10 +177,10 @@ export function S07StreamFlipping() {
       }
       visual={(s) => <Visual {...s} />}
       figure={(s) => s.step === 0
-        ? { caption: <>I/O power for a Raptor card at full bandwidth if nothing were done. Source: Sec IV-D.</> }
+        ? { caption: <>The I/O power a Raptor card would draw at full bandwidth without any countermeasure. Source: Sec IV-D.</> }
         : s.step >= 3
           ? { evidence: 'measured', caption: <>Measured I/O energy at {SF.measuredAtMHz} MHz with {SF.banksAtResult} active banks, every wire switching versus with stream flipping. Source: Sec V-A, Fig. 10.</> }
-          : { caption: <>Illustration, not data. Each row is one chunk, with fewer wires than the real {fmt(SF.chunkBits)}. Orange cells are wires that had to switch; with flipping on, a flag marks inverted chunks.</> }}
+          : { caption: <>An illustration rather than data. Each row is one chunk, drawn with fewer wires than the real {fmt(SF.chunkBits)}. Orange cells are wires that changed value, and when flipping is on, a filled flag marks chunks that were sent inverted.</> }}
     />
   );
 }

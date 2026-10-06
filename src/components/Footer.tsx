@@ -15,7 +15,7 @@ export function Footer() {
         </div>
         <div className="sans text-sm leading-relaxed text-muted">
           <p className="kicker">About this page</p>
-          <p className="mt-3">An independent explainer, not affiliated with or endorsed by d-Matrix. The text and illustrations are original. Every number comes from the paper, and each figure is marked by where its numbers come from:</p>
+          <p className="mt-3">This is an independent explainer and is not affiliated with or endorsed by d-Matrix. The text and illustrations are original. All numbers come from the paper, and each figure is marked to show where its numbers come from:</p>
           <ul className="mt-3 space-y-1">
             <li><Badge kind="measured" />: measured on the chip</li>
             <li><Badge kind="modeled" />: from the paper’s models</li>

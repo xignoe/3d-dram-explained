@@ -91,15 +91,15 @@ export function S02KVCache() {
       id="kv-cache"
       num={2}
       kicker="The KV cache"
-      title="The model’s memory of your conversation keeps growing."
+      title="The KV cache grows with every token and every user"
       steps={[
-        <p key="a">For every token in a conversation, the model stores notes it will need again: the <Term k="kv">KV cache</Term>. For the paper’s {KV_INTRO.modelLabel} example, that is about <strong className="num">{KV_INTRO.mbPerTokenPerUser} MB per token, per user</strong>, at {KV_INTRO.precisionLabel} precision.</p>,
-        <p key="b">Small per token, but contexts are long. One user at {a[0].label} tokens needs about <strong className="num">{a[0].gb} GB</strong>. At {a[1].label} it is <strong className="num">{a[1].gb} GB</strong>. At {a[2].label}, <strong className="num">{a[2].gb} GB</strong>, for a single conversation.</p>,
+        <p key="a">For each token in a conversation, the model keeps some intermediate results that it will need again later. Together these make up the <Term k="kv">KV cache</Term>. In the paper’s example, a {KV_INTRO.modelLabel} model with {KV_INTRO.precisionLabel} storage, the cache grows by about <strong className="num">{KV_INTRO.mbPerTokenPerUser} MB</strong> per token for each user.</p>,
+        <p key="b">That is a small amount per token, but conversations can be long. One user at {a[0].label} tokens needs about <strong className="num">{a[0].gb} GB</strong>, at {a[1].label} about <strong className="num">{a[1].gb} GB</strong>, and at {a[2].label} about <strong className="num">{a[2].gb} GB</strong>.</p>,
         <>
-          <p key="c">Now serve many people at once. The paper’s example grows from about <strong className="num">{KV_BATCH.batch1GB} GB</strong> for one user to <strong className="num">{KV_BATCH.batch32GB} GB</strong> for {KV_BATCH.batchHigh}. The cache quickly dwarfs the <strong className="num">{KV_INTRO.weightsGB} GB</strong> of model weights.</p>
-          <Note>The paper doesn’t say which context length that example uses. Working backwards, it matches {contextLabel(KV_BATCH_INFERRED_CONTEXT)} tokens exactly, so that is what the animation shows. That part is our inference.</Note>
+          <p key="c">A server also handles many conversations at the same time, and each has its own cache. The paper gives an example that grows from about <strong className="num">{KV_BATCH.batch1GB} GB</strong> for a single user to <strong className="num">{KV_BATCH.batch32GB} GB</strong> for {KV_BATCH.batchHigh} users, far more than the <strong className="num">{KV_INTRO.weightsGB} GB</strong> taken up by the model’s weights.</p>
+          <Note>The paper doesn’t say which context length this example assumes. The numbers match {contextLabel(KV_BATCH_INFERRED_CONTEXT)} tokens exactly, so the figure uses that value, but this is our inference.</Note>
         </>,
-        <p key="d">Try it yourself. Every one of these bytes has to be read again for every new token, which is why memory <Term k="capacity">capacity</Term> <em>and</em> <Term k="bandwidth">bandwidth</Term> both matter.</p>,
+        <p key="d">You can change both values in the figure. All of this data has to be read again for every new token, which is why both the amount of memory and its speed matter.</p>,
       ]}
       description={() =>
         `Interactive: sliders for context length and number of users. A bar compares the KV cache size, computed as about ${KV_INTRO.mbPerTokenPerUser} megabytes per token per user, against ${KV_INTRO.weightsGB} gigabytes of model weights. Paper values: ${a.map((x) => `${x.gb} GB at ${x.label}`).join(', ')} for one user; ${KV_BATCH.batch1GB} GB rising to ${KV_BATCH.batch32GB} GB from ${KV_BATCH.batchLow} to ${KV_BATCH.batchHigh} users.`
