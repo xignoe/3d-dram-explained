@@ -1,0 +1,6 @@
+node_modules
+dist
+*.tsbuildinfo
+.claude
+# The paper PDF is IEEE-copyrighted; the site links to the authors' hosted copy instead.
+paper/
