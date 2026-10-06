@@ -25,6 +25,7 @@ export const TOY = {
   budgetGridColumns: 32,
 
   // Scene 7: bit-flip toy
+  wiresDrawn: 40,
   bitWidth: 64, // stands in for a 1,024-bit chunk
   bitWidthNarrow: 32, // same, on phones
   rowsShown: 12,
@@ -39,6 +40,11 @@ export const TOY = {
   hotDemoC: 95,
   tempSliderMinC: 40,
   raceDurationMs: 6000,
+  chargeRowsDrawn: 10,
+  chargeCellsDrawn: 18,
+  refreshSecondsPerMs: 0.25, // animation seconds per real millisecond of refresh interval
+  thermoMinC: 30,
+  thermoMaxC: 120,
 
   // Scene 13: number of draft tokens drawn (the paper calls it K)
   draftTokensShown: 4,

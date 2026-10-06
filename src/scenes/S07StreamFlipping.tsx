@@ -79,6 +79,70 @@ function Strip({ rows, flipOn, N }: { rows: Row[]; flipOn: boolean; N: number })
   );
 }
 
+/** Side view of the two dies with the vertical connections between them; a few are switching. */
+function WiresFigure() {
+  const n = TOY.wiresDrawn;
+  const switching = (i: number) => (i * 7919) % 5 < 2; // a fixed, irregular pattern of switching wires
+  return (
+    <div className="flex h-full flex-col justify-center-safe gap-6">
+      <svg viewBox="0 0 520 210" className="w-full" aria-hidden>
+        <rect x={20} y={20} width={480} height={34} fill={P.logic} stroke={P.ink} strokeWidth={1.2} />
+        <text x={30} y={42} fontSize="12" fill={P.ink}>logic die</text>
+        <rect x={20} y={150} width={480} height={34} fill={P.dramTint} stroke={P.ink} strokeWidth={1.2} />
+        <text x={30} y={172} fontSize="12" fill={P.ink}>DRAM die</text>
+        {Array.from({ length: n }, (_, i) => {
+          const x = 32 + (i * 456) / (n - 1);
+          const on = switching(i);
+          return (
+            <g key={i}>
+              <line x1={x} x2={x} y1={54} y2={150} stroke={on ? P.sram : P.ink3} strokeWidth={on ? 2.2 : 1}
+                style={on ? { animation: 'pulse-soft 0.9s ease-in-out infinite', animationDelay: `${(i % 7) * 0.13}s` } : undefined} />
+              <circle cx={x} cy={54} r={2} fill={P.ink3} />
+              <circle cx={x} cy={150} r={2} fill={P.ink3} />
+            </g>
+          );
+        })}
+        <text x={260} y={204} textAnchor="middle" fontSize="11" fill={P.ink2}>each orange line is a connection flipping between 0 and 1, which costs energy</text>
+      </svg>
+      <BigStat size="xl" value={`≈${SF.ioPowerAt100TBsW}`} unit="W" label={<>per card spent just switching these connections at {SF.atBandwidthTBs} TB/s, before any countermeasure</>} />
+    </div>
+  );
+}
+
+/** The measured result as a drawn comparison of energy per bit. */
+function EnergyFigure() {
+  const max = SF.beforePJPerBit;
+  const L = 360;
+  const bars = [
+    { label: 'every wire switching', v: SF.beforePJPerBit, color: P.ink2 },
+    { label: 'with stream flipping', v: SF.afterPJPerBit, color: P.dram },
+  ];
+  return (
+    <div className="flex h-full flex-col justify-center-safe gap-4">
+      <div className="sans text-sm text-muted">Energy to move one bit between the dies</div>
+      <svg viewBox="0 0 520 196" className="w-full" aria-hidden>
+        {bars.map((b, i) => (
+          <g key={b.label} transform={`translate(0 ${20 + i * 80})`}>
+            <text x={0} y={0} fontSize="12" fill={P.ink2}>{b.label}</text>
+            <rect x={0} y={10} width={(b.v / max) * L} height={34} fill={b.color} fillOpacity={0.85} stroke={P.ink} strokeWidth={1} />
+            <text x={(b.v / max) * L + 10} y={34} fontSize="20" style={{ fontFamily: 'var(--font-serif)' }} fill={P.ink}>{b.v} <tspan fontSize="12" fill={P.ink2}>pJ/bit</tspan></text>
+          </g>
+        ))}
+        {/* bracket marking the saving */}
+        {/* dimension line between the two bar ends */}
+        <g stroke={P.dram} strokeWidth={1.2}>
+          <line x1={(SF.afterPJPerBit / max) * L} x2={L} y1={172} y2={172} />
+          <line x1={(SF.afterPJPerBit / max) * L} x2={(SF.afterPJPerBit / max) * L} y1={164} y2={180} />
+          <line x1={L} x2={L} y1={164} y2={180} />
+          <line x1={(SF.afterPJPerBit / max) * L} x2={(SF.afterPJPerBit / max) * L} y1={146} y2={160} strokeDasharray="2 3" strokeOpacity={0.6} />
+        </g>
+        <text x={L + 12} y={180} fontSize="22" style={{ fontFamily: 'var(--font-serif)' }} fill={P.dram}>−{SF.reductionPct}%</text>
+      </svg>
+      <p className="sans text-sm text-muted">No extra pins, and one flag bit per {SF.chunkBytes}-byte chunk.</p>
+    </div>
+  );
+}
+
 function Visual({ step, inView, reduced }: SceneState) {
   const [manualFlip, setManualFlip] = useState<boolean | null>(null);
   const [pattern, setPattern] = useState<Pattern>('random');
@@ -92,30 +156,8 @@ function Visual({ step, inView, reduced }: SceneState) {
 
   const saved = totals.baseline > 0 ? 1 - totals.actual / totals.baseline : 0;
 
-  if (step === 0 || step >= 3) {
-    return (
-      <div className="flex h-full flex-col justify-center-safe gap-6 lg:gap-10">
-        {step === 0 ? (
-          <div className="panel p-5 lg:p-8">
-            <BigStat size="xl" value={`≈${SF.ioPowerAt100TBsW}`} unit="W" color="var(--color-ink)" label={<>of power per card spent just switching the memory wires, at {SF.atBandwidthTBs} TB/s, before any fix.</>} />
-          </div>
-        ) : (
-          <div className="panel p-5 lg:p-8">
-            <div className="sans mb-3 text-sm text-muted lg:mb-5">I/O energy, worst case versus with stream flipping</div>
-            <div className="flex flex-wrap items-end gap-6">
-              <BigStat value={SF.beforePJPerBit} unit="pJ/bit" label="every wire switching" color="var(--color-muted)" />
-              <span className="hidden pb-8 font-serif text-4xl text-faint lg:inline">→</span>
-              <BigStat value={SF.afterPJPerBit} unit="pJ/bit" label="with stream flipping" color="var(--color-dram3d)" />
-            </div>
-            <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-line pt-3 lg:mt-8 lg:pt-5">
-              <span className="num font-serif text-5xl font-medium text-dram3d lg:text-8xl">−{SF.reductionPct}%</span>
-              <span className="sans hidden max-w-[22ch] text-sm text-muted lg:inline">energy, with no extra pins and one flag bit per {SF.chunkBytes}-byte chunk</span>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
+  if (step === 0) return <WiresFigure />;
+  if (step >= 3) return <EnergyFigure />;
 
   return (
     <div className="flex h-full flex-col gap-2 lg:gap-3">

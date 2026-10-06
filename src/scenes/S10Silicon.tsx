@@ -29,9 +29,41 @@ function Spark({ series, label, color, rising }: { series: 'latency3Bank' | 'ban
   );
 }
 
-function Visual({ step }: SceneState) {
+/** One chunk travelling from a bank up into a tensor engine's buffer. Illustration. */
+function ChunkPath({ reduced }: { reduced: boolean }) {
+  const pieces = BANK_BUDGET.chunkBytes / BANK_BUDGET.bytesPerBankRead;
   return (
-    <div className="flex h-full flex-col justify-center-safe gap-6 lg:gap-10">
+    <svg viewBox="0 0 520 130" className="w-full" aria-hidden>
+      <defs>
+        <path id="chunk-route" d="M120 92 C 220 92, 300 40, 392 40" />
+        <marker id="cp-ah" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill={P.ink} /></marker>
+      </defs>
+      {/* banks of one channel */}
+      {Array.from({ length: BANK_BUDGET.banksPerChannel }, (_, b) => (
+        <g key={b} transform={`translate(${20 + b * 32} 70)`}>
+          <rect width={28} height={44} fill={P.dramTint} stroke={P.ink} strokeWidth={1} />
+          {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={3} x2={25} y1={44 * f} y2={44 * f} stroke={P.dram} strokeOpacity={0.6} />)}
+        </g>
+      ))}
+      <text x={20} y={128} fontSize="11" fill={P.ink2}>banks of one channel</text>
+      <use href="#chunk-route" fill="none" stroke={P.ink} strokeWidth={1.2} strokeDasharray="3 3" markerEnd="url(#cp-ah)" />
+      <g transform={reduced ? 'translate(270 62)' : undefined}>
+        {Array.from({ length: pieces }, (_, q) => <rect key={q} x={-22 + q * 11} y={-6} width={10} height={12} fill={P.dram} stroke={P.ink} strokeWidth={0.6} />)}
+        {!reduced && <animateMotion dur="2.4s" repeatCount="indefinite" rotate="0"><mpath href="#chunk-route" /></animateMotion>}
+      </g>
+      <text x={250} y={36} textAnchor="middle" fontSize="13" style={{ fontFamily: 'var(--font-serif)' }} fontStyle="italic" fill={P.ink}>about {S.flitLatencyNs} ns per chunk</text>
+      <g transform="translate(398 14)">
+        <rect width={104} height={52} rx={2} fill={P.te} stroke={P.ink} strokeWidth={1.2} />
+        <text x={52} y={30} textAnchor="middle" fontSize="12" fill={P.ink}>tensor engine</text>
+      </g>
+    </svg>
+  );
+}
+
+function Visual({ step, reduced }: SceneState) {
+  return (
+    <div className="flex h-full flex-col justify-center-safe gap-5 lg:gap-8">
+      <ChunkPath reduced={reduced} />
       <div className="grid grid-cols-2 divide-x divide-line border-y border-line">
         <div className="py-4 pr-4"><BigStat value={`~${S.flitLatencyNs}`} unit="ns" label="average time to deliver one chunk" color="var(--color-dram3d)" /></div>
         <div className="py-4 pl-5"><BigStat value={`~${S.bandwidthPerCardTBs}`} unit="TB/s" label="DRAM bandwidth per card" color="var(--color-dram3d)" /></div>

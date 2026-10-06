@@ -9,42 +9,55 @@ import { useDesktop } from '../lib/hooks';
 const H = 420, M = { l: 64, r: 24, t: 28, b: 56 };
 const ORDER: MemoryId[] = ['sram', 'hbm', 'dram3d'];
 const CHEF: Record<MemoryId, string> = { sram: 'the countertop', hbm: 'the pantry down the hall', dram3d: 'the pantry under the kitchen' };
-const pow10 = (t: number) => Number.isInteger(Math.log10(t));
 
-function Scatter({ step, W }: { step: number; W: number }) {
-  const x = scaleLog().domain([1, 1000]).range([M.l, W - M.r]);
-  const y = scaleLog().domain([10, 300]).range([H - M.b, M.t]);
+/**
+ * Each memory drawn as a store attached to the same processor. Box area is
+ * proportional to capacity; the channel's width at the processor is
+ * proportional to bandwidth (both from Table III).
+ */
+function Pantries({ step, W }: { step: number; W: number }) {
+  const narrow = W < 600;
+  const colW = W / ORDER.length;
+  const chip = narrow ? 50 : 64;
+  const chipY = 64, channelLen = narrow ? 34 : 44;
+  const maxCap = Math.max(...ORDER.map((id) => MEMORY[id].capacityGB));
+  const maxBw = Math.max(...ORDER.map((id) => MEMORY[id].bandwidthTBs));
+  const k = Math.min(colW * 0.86, 190) / Math.sqrt(maxCap);
   return (
     <g>
-      {x.ticks().filter(pow10).map((t) => (
-        <g key={t}>
-          <line x1={x(t)} x2={x(t)} y1={M.t} y2={H - M.b} stroke={P.rule} strokeDasharray="2 3" />
-          <text x={x(t)} y={H - M.b + 18} textAnchor="middle" className="svg-label svg-num">{fmt(t)}</text>
-        </g>
-      ))}
-      {y.ticks().filter(pow10).map((t) => (
-        <g key={t}>
-          <line x1={M.l} x2={W - M.r} y1={y(t)} y2={y(t)} stroke={P.rule} strokeDasharray="2 3" />
-          <text x={M.l - 8} y={y(t) + 4} textAnchor="end" className="svg-label svg-num">{fmt(t)}</text>
-        </g>
-      ))}
-      <text x={(M.l + W - M.r) / 2} y={H - 12} textAnchor="middle" className="svg-label">capacity per card (GB, log scale) →</text>
-      <text transform={`translate(16 ${(M.t + H - M.b) / 2}) rotate(-90)`} textAnchor="middle" className="svg-label">bandwidth per card (TB/s, log) →</text>
       {ORDER.map((id, i) => {
         const m = MEMORY[id];
+        const cx = colW * (i + 0.5);
+        const box = k * Math.sqrt(m.capacityGB);
+        const band = chip * (m.bandwidthTBs / maxBw);
+        const top = chipY + chip + channelLen;
+        const bandBottom = Math.min(band, box);
         const on = step >= i;
-        const cx = x(m.capacityGB), cy = y(m.bandwidthTBs);
-        const anchor = id === 'hbm' ? 'end' : 'start';
-        const dx = id === 'hbm' ? -14 : 14;
         return (
-          <g key={id} className="fade" opacity={on ? 1 : 0}>
-            <circle cx={cx} cy={cy} r={step === i ? 9 : 7} fill={MEM_COLOR[id]} stroke={P.paper} strokeWidth={2} className="fade" />
-            <text x={cx + dx} y={cy - 6} textAnchor={anchor} fontSize="17" fontWeight={500} style={{ fontFamily: 'var(--font-serif)' }} fill={MEM_COLOR[id]}>{m.label}</text>
-            <text x={cx + dx} y={cy + 12} textAnchor={anchor} fontSize="12" className="svg-num" fill={P.ink}>{m.bandwidthTBs} TB/s · {m.capacityGB} GB</text>
-            {W >= 600 && <text x={cx + dx} y={cy + 28} textAnchor={anchor} fontSize="11" fontStyle="italic" style={{ fontFamily: 'var(--font-serif)' }} fill={P.ink2}>{CHEF[id]}</text>}
+          <g key={id} className="fade" opacity={on ? 1 : 0.18}>
+            <text x={cx} y={20} textAnchor="middle" fontSize={narrow ? 15 : 18} fontWeight={500} style={{ fontFamily: 'var(--font-serif)' }} fill={MEM_COLOR[id]}>{m.label}</text>
+            <text x={cx} y={38} textAnchor="middle" fontSize="11" className="svg-num" fill={P.ink2}>{m.bandwidthTBs} TB/s · {m.capacityGB} GB</text>
+            {/* the same processor in every case */}
+            <rect x={cx - chip / 2} y={chipY} width={chip} height={chip} fill={P.logic} stroke={P.ink} strokeWidth={1.2} />
+            {Array.from({ length: 9 }, (_, j) => (
+              <rect key={j} x={cx - chip / 2 + 7 + (j % 3) * ((chip - 14) / 3)} y={chipY + 7 + Math.floor(j / 3) * ((chip - 14) / 3)} width={(chip - 14) / 3 - 4} height={(chip - 14) / 3 - 4} fill={P.te} stroke={P.ink3} strokeWidth={0.6} />
+            ))}
+            {/* channel: width at the processor encodes bandwidth */}
+            <path d={`M${cx - band / 2} ${chipY + chip} L${cx + band / 2} ${chipY + chip} L${cx + bandBottom / 2} ${top} L${cx - bandBottom / 2} ${top} Z`}
+              fill={MEM_COLOR[id]} fillOpacity={0.35} stroke={MEM_COLOR[id]} strokeWidth={1} />
+            {/* the store: area encodes capacity */}
+            <rect x={cx - box / 2} y={top} width={box} height={box} fill={P.paper} stroke={MEM_COLOR[id]} strokeWidth={1.6} />
+            {(() => {
+              const shelves = Math.max(1, Math.round(box / 14));
+              return Array.from({ length: shelves }, (_, j) => (
+                <line key={j} x1={cx - box / 2 + 3} x2={cx + box / 2 - 3} y1={top + ((j + 1) * box) / (shelves + 1)} y2={top + ((j + 1) * box) / (shelves + 1)} stroke={MEM_COLOR[id]} strokeOpacity={0.35} />
+              ));
+            })()}
+            {W >= 600 && <text x={cx} y={top + box + 18} textAnchor="middle" fontSize="12" fontStyle="italic" style={{ fontFamily: 'var(--font-serif)' }} fill={P.ink2}>{CHEF[id]}</text>}
           </g>
         );
       })}
+      <text x={W / 2} y={H - 10} textAnchor="middle" fontSize="11" fill={P.ink2}>box area ∝ capacity · channel width at the processor ∝ bandwidth</text>
     </g>
   );
 }
@@ -78,7 +91,7 @@ function Visual({ step }: SceneState) {
   return (
     <div className="relative h-full">
       <svg viewBox={`0 0 ${W} ${H}`} className="h-full w-full" aria-hidden>
-        <g className="fade" opacity={bars ? 0 : 1}><Scatter step={step} W={W} /></g>
+        <g className="fade" opacity={bars ? 0 : 1}><Pantries step={step} W={W} /></g>
         <g className="fade" opacity={bars ? 1 : 0}>{bars && <Bars W={W} />}</g>
       </svg>
     </div>
@@ -118,7 +131,7 @@ export function S03Pantry() {
       }
       visual={(s) => <Visual {...s} />}
       figure={(s) => s.step < 3
-        ? { caption: <>Memory bandwidth against capacity per card, both on log scales. All three pair with the same {XPU_PFLOPS} PFLOPS compute logic. Source: Table III.</> }
+        ? { caption: <>The three memories attached to the same {XPU_PFLOPS} PFLOPS compute logic, drawn to scale: each box’s area is proportional to capacity per card, and each channel’s width where it meets the processor is proportional to bandwidth. Source: Table III.</> }
         : { evidence: 'derived', caption: <>How many times per second each card could read through its entire memory: bandwidth ÷ capacity, log scale. Our arithmetic on Table III, not a result from the paper.</> }}
     />
   );

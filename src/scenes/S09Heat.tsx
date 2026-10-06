@@ -11,6 +11,33 @@ import { TOY } from '../data/illustrative';
 import { fmt } from '../lib/fmt';
 
 /* ---------- 9a: refresh timeline ---------- */
+/** A bank whose rows slowly lose charge and are topped up as the refresh sweeps past. Illustration. */
+function ChargeBank({ interval }: { interval: number }) {
+  const rows = TOY.chargeRowsDrawn, cells = TOY.chargeCellsDrawn;
+  const rowH = 9, W = 400, x0 = 110, cw = (W - x0 - 12) / cells;
+  const dur = interval * TOY.refreshSecondsPerMs;
+  return (
+    <svg viewBox={`0 0 ${W} ${rows * rowH + 24}`} className="w-full" aria-hidden>
+      <text x={0} y={14} fontSize="11" fill={P.ink2}>one bank’s rows</text>
+      <text x={0} y={30} fontSize="10" fill={P.ink3}>charge fades,</text>
+      <text x={0} y={43} fontSize="10" fill={P.ink3}>refresh restores it</text>
+      <rect x={x0 - 4} y={4} width={W - x0} height={rows * rowH + 8} fill={P.paper} stroke={P.ink} strokeWidth={1} />
+      {Array.from({ length: rows }, (_, r) => (
+        <g key={`${r}-${interval}`}>
+          {Array.from({ length: cells }, (_, c) => (
+            <rect key={c} x={x0 + c * cw} y={8 + r * rowH} width={cw - 1.5} height={rowH - 2} fill={P.dram} fillOpacity={0.8}
+              style={{ animation: `leak ${dur}s linear infinite`, animationDelay: `${-(1 - r / rows) * dur}s` }} />
+          ))}
+        </g>
+      ))}
+      <g key={interval} style={{ animation: `sweep ${dur}s linear infinite`, ['--sweep-dist' as string]: `${rows * rowH}px` }}>
+        <line x1={x0 - 10} x2={W - 2} y1={8} y2={8} stroke={P.sram} strokeWidth={2} />
+        <text x={x0 - 14} y={11} textAnchor="end" fontSize="9" fill={P.sram}>refresh</text>
+      </g>
+    </svg>
+  );
+}
+
 function RefreshPanel({ step }: { step: number }) {
   const [manualT, setManualT] = useState<number | null>(null);
   useEffect(() => setManualT(null), [step]);
@@ -28,6 +55,7 @@ function RefreshPanel({ step }: { step: number }) {
         <input type="range" min={TOY.tempSliderMinC} max={R.maxJunctionC} value={temp} onChange={(e) => setManualT(+e.target.value)} aria-valuetext={`${temp} degrees Celsius`} />
         <span className="flex justify-between text-[0.7rem] text-faint"><span>{TOY.tempSliderMinC} °C</span><span>threshold {R.hotThresholdC} °C</span><span>max {R.maxJunctionC} °C</span></span>
       </label>
+      <ChargeBank interval={interval} />
       <svg viewBox="0 0 400 150" className="w-full" aria-hidden>
         <text x="12" y="16" fontSize="12" fill="var(--color-dram3d)">Raptor: refresh every <tspan className="svg-num" fontSize="14">{interval} ms</tspan></text>
         <line x1={X(0)} x2={X(span)} y1="44" y2="44" stroke="var(--color-line)" />
@@ -44,21 +72,27 @@ function RefreshPanel({ step }: { step: number }) {
 }
 
 function RowsPanel() {
-  const max = R.fewerRowsMax;
+  const unit = 13, H = 40;
+  const bank = (x: number, y: number, mult: number, fill: string, dashed = false) => (
+    <g>
+      <rect x={x} y={y} width={unit * mult} height={H} fill={fill} stroke={P.ink} strokeWidth={1} strokeDasharray={dashed ? '4 3' : undefined} fillOpacity={dashed ? 0.25 : 1} />
+      {Array.from({ length: Math.floor(unit * mult / 5) }, (_, i) => (
+        <line key={i} x1={x + 2.5 + i * 5} x2={x + 2.5 + i * 5} y1={y + 4} y2={y + H - 4} stroke={P.paper} strokeOpacity={dashed ? 0.4 : 0.5} strokeWidth={1} />
+      ))}
+    </g>
+  );
   return (
-    <div className="flex h-full flex-col justify-center-safe gap-6">
-      <div>
-        <div className="mb-1 flex justify-between text-sm"><span className="text-dram3d">Raptor bank</span><span className="num text-ink">{fmt(R.rowsPerBank)} rows</span></div>
-        <div className="h-6 bg-surface-2"><div className="h-full bg-dram3d" style={{ width: `${100 / max}%` }} /></div>
-      </div>
-      <div>
-        <div className="mb-1 flex justify-between text-sm"><span className="text-muted">Conventional DRAM bank</span><span className="num text-ink">{R.fewerRowsLabel} more rows</span></div>
-        <div className="relative h-6 bg-surface-2">
-          <div className="absolute inset-y-0 left-0 bg-faint" style={{ width: `${(R.fewerRowsMin / max) * 100}%` }} />
-          <div className="absolute inset-y-0 " style={{ left: `${(R.fewerRowsMin / max) * 100}%`, right: 0, background: 'repeating-linear-gradient(45deg, var(--color-faint) 0 4px, transparent 4px 9px)' }} />
-        </div>
-      </div>
-      <p className="sans text-sm text-muted">Refresh works row by row, so a bank with far fewer rows finishes a refresh pass far sooner. Frequent refresh stays cheap.</p>
+    <div className="flex h-full flex-col justify-center-safe gap-4">
+      <svg viewBox={`0 0 ${unit * R.fewerRowsMax + 20} 190`} className="w-full" aria-hidden>
+        <text x={0} y={14} fontSize="12" fill={P.dram}>Raptor bank: {fmt(R.rowsPerBank)} rows</text>
+        {bank(0, 22, 1, P.dram)}
+        <text x={0} y={100} fontSize="12" fill={P.ink2}>conventional DRAM bank: {R.fewerRowsLabel} as many rows</text>
+        {bank(0, 108, R.fewerRowsMin, P.logicDark)}
+        {bank(unit * R.fewerRowsMin, 108, R.fewerRowsMax - R.fewerRowsMin, P.logicDark, true)}
+        <text x={unit * R.fewerRowsMin} y={168} fontSize="10" fill={P.ink3}>{R.fewerRowsMin}×</text>
+        <text x={unit * R.fewerRowsMax} y={168} fontSize="10" textAnchor="end" fill={P.ink3}>{R.fewerRowsMax}×</text>
+      </svg>
+      <p className="sans text-sm text-muted">Each stripe is a slice of rows, drawn to scale. Refresh works through a bank row by row, so a bank with far fewer rows finishes each pass much sooner.</p>
     </div>
   );
 }
@@ -101,6 +135,21 @@ function RacePanel({ active, reduced }: { active: boolean; reduced: boolean }) {
   const refreshes = Array.from({ length: Math.floor(RH.attackMs / RH.refreshMs) }, (_, i) => (i + 1) * RH.refreshMs);
   return (
     <div className="flex h-full flex-col justify-center-safe gap-5">
+      <svg viewBox="0 0 400 96" className="w-full" aria-hidden>
+        {['victim row', 'aggressor row', 'victim row'].map((label, i) => {
+          const aggr = i === 1;
+          return (
+            <g key={i} transform={`translate(0 ${8 + i * 28})`}>
+              <text x={0} y={15} fontSize="11" fill={aggr ? P.danger : P.ink2}>{label}</text>
+              {Array.from({ length: 22 }, (_, c) => (
+                <rect key={c} x={96 + c * 13.5} y={2} width={11} height={18} fill={aggr ? P.danger : P.dram}
+                  fillOpacity={aggr ? 0.75 : 0.9 - ((reduced ? MAX_ACTIVATIONS_PER_WINDOW : now) / RH.threshold) * 0.6}
+                  style={aggr && active && !reduced && t < RH.attackMs ? { animation: 'pulse-soft 0.25s linear infinite' } : undefined} />
+              ))}
+            </g>
+          );
+        })}
+      </svg>
       <div className="text-sm text-muted">An attacker activates one row repeatedly, hoping to flip bits in the rows next to it. The attack needs <span className="num text-ink">{fmt(RH.threshold)}</span> activations, at <span className="num text-ink">{RH.tRCns} ns</span> each.</div>
       <div>
         <div className="mb-1 flex justify-between text-xs text-muted"><span>if nothing interrupted them</span><span className="num">{fmt(Math.round(ghost * RH.threshold))}</span></div>
@@ -164,34 +213,57 @@ function HeatStack() {
   );
 }
 
+/** A thermometer whose column reaches `temp` (or overflows past the top when `over`). */
+function Thermometer({ x, y, temp, over, label }: { x: number; y: number; temp: number; over?: boolean; label: string }) {
+  const lo = TOY.thermoMinC, hi = TOY.thermoMaxC, h = 120;
+  const yOf = (t: number) => y + h - ((Math.min(t, hi) - lo) / (hi - lo)) * h;
+  const top = over ? y - 6 : yOf(temp);
+  const hot = over || temp >= TH.limitC;
+  return (
+    <g>
+      <rect x={x - 6} y={y - 8} width={12} height={h + 10} rx={6} fill={P.paper} stroke={P.ink} strokeWidth={1} />
+      <circle cx={x} cy={y + h + 8} r={10} fill={hot ? P.danger : P.dram} stroke={P.ink} strokeWidth={1} />
+      <rect x={x - 3} y={top} width={6} height={y + h + 6 - top} fill={hot ? P.danger : P.dram} />
+      <line x1={x - 12} x2={x + 12} y1={yOf(TH.limitC)} y2={yOf(TH.limitC)} stroke={P.danger} strokeDasharray="3 2" />
+      <text x={x} y={y + h + 36} textAnchor="middle" fontSize="12" style={{ fontFamily: 'var(--font-serif)' }} fill={P.ink}>{label}</text>
+    </g>
+  );
+}
+
 function CoolingPanel() {
   const [air, opt, liquid] = TH.cooling;
-  const max = opt.headroomW * 1.1;
-  const pct = (w: number) => `${(w / max) * 100}%`;
-  const rows = [
-    { c: air, w: air.maxChipletW, temp: `over the ${TH.limitC} °C limit`, bar: `fits only ${air.maxChipletW} W` },
-    { c: opt, w: opt.headroomW, temp: `≈${opt.peakAt106C} °C peak`, bar: `headroom to ≈${opt.headroomW} W` },
-    { c: liquid, w: null, temp: `under ${liquid.belowC} °C`, bar: 'limit not stated' },
-  ];
+  const col = (i: number) => 70 + i * 150;
   return (
-    <div className="flex h-full flex-col justify-center-safe gap-4">
-      <div className="sans text-sm text-muted">Power each chiplet can draw while staying under {TH.limitC} °C</div>
-      <div className="relative space-y-4">
-        <div className="absolute inset-y-0 border-l border-dashed border-ink/60" style={{ left: pct(TH.chipletW) }}>
-          <span className="absolute -top-5 -translate-x-1/2 whitespace-nowrap text-[0.65rem] text-ink">Raptor: {TH.chipletW} W</span>
-        </div>
-        {rows.map(({ c, w, temp, bar }) => (
-          <div key={c.id}>
-            <div className="mb-1 flex justify-between text-xs"><span className="text-ink">{c.label}</span><span className="text-muted">at {TH.chipletW} W: <span className="num text-ink">{temp}</span></span></div>
-            <div className="h-5 bg-surface-2">
-              {w !== null
-                ? <div className="h-full " style={{ width: pct(w), background: w < TH.chipletW ? 'var(--color-danger)' : 'var(--color-dram3d)' }} />
-                : <div className="h-full " style={{ width: '100%', background: 'linear-gradient(90deg, var(--color-dram3d), transparent)' }} />}
-            </div>
-            <div className="mt-0.5 text-[0.7rem] text-faint">{bar}</div>
-          </div>
-        ))}
-      </div>
+    <div className="flex h-full flex-col justify-center-safe gap-3">
+      <div className="sans text-sm text-muted">Peak temperature at {TH.chipletW} W per chiplet; the dashed line is the {TH.limitC} °C limit</div>
+      <svg viewBox="0 0 460 306" className="w-full" aria-hidden>
+        {/* baseline air: small finned cooler and a fan */}
+        <g transform={`translate(${col(0) - 50} 20)`} stroke={P.ink} strokeWidth={1}>
+          {Array.from({ length: 6 }, (_, i) => <rect key={i} x={8 + i * 8} y={10} width={4} height={34} fill={P.logicDark} />)}
+          <rect x={4} y={44} width={52} height={8} fill={P.logicDark} />
+          <circle cx={78} cy={30} r={18} fill={P.paper} />
+          {[0, 120, 240].map((r) => <path key={r} d="M78 30 q 8 -14 0 -16" transform={`rotate(${r} 78 30)`} fill="none" />)}
+        </g>
+        {/* optimized heatsink: tall, dense fins */}
+        <g transform={`translate(${col(1) - 40} 6)`} stroke={P.ink} strokeWidth={1}>
+          {Array.from({ length: 11 }, (_, i) => <rect key={i} x={i * 7.5} y={0} width={4} height={52} fill={P.logicDark} />)}
+          <rect x={-2} y={52} width={84} height={8} fill={P.copper} />
+        </g>
+        {/* liquid: cold plate with pipes */}
+        <g transform={`translate(${col(2) - 40} 20)`} stroke={P.ink} strokeWidth={1}>
+          <rect x={0} y={30} width={80} height={20} rx={3} fill={P.hbmTint} />
+          <path d="M18 30 V8 H-6" fill="none" stroke={P.hbm} strokeWidth={4} />
+          <path d="M62 30 V8 H86" fill="none" stroke={P.hbm} strokeWidth={4} />
+        </g>
+        <Thermometer x={col(0)} y={100} temp={TH.limitC} over label={air.label} />
+        <Thermometer x={col(1)} y={100} temp={opt.peakAt106C} label={opt.label} />
+        <Thermometer x={col(2)} y={100} temp={liquid.belowC} label={liquid.label} />
+        <g fontSize="11" fill={P.ink2} textAnchor="middle">
+          <text x={col(0)} y={282}><tspan x={col(0)} fill={P.danger}>over {TH.limitC} °C</tspan><tspan x={col(0)} dy={14}>fits only {air.maxChipletW} W</tspan></text>
+          <text x={col(1)} y={282}><tspan x={col(1)} fill={P.ink}>≈{opt.peakAt106C} °C</tspan><tspan x={col(1)} dy={14}>headroom to ≈{opt.headroomW} W</tspan></text>
+          <text x={col(2)} y={282}><tspan x={col(2)} fill={P.ink}>under {liquid.belowC} °C</tspan></text>
+        </g>
+      </svg>
     </div>
   );
 }

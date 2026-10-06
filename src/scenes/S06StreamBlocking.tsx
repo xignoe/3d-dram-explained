@@ -84,7 +84,7 @@ function Channel({ step, mode, chunk }: { step: number; mode: 'naive' | 'blocked
   const mine = items.filter((p) => p.chunk === cur);
   const readCols = [...new Set(mine.map((p) => p.col))];
   return (
-    <svg viewBox="0 0 420 360" className="h-full w-full" aria-hidden>
+    <svg viewBox="0 0 520 360" className="h-full w-full" aria-hidden>
       <text x={X0} y={20} className="svg-label">one channel: {BANKS} banks, each square {BB.bytesPerBankRead} B</text>
       {Array.from({ length: BANKS }, (_, b) => (
         <g key={b}>
@@ -143,6 +143,19 @@ function Channel({ step, mode, chunk }: { step: number; mode: 'naive' | 'blocked
           <text y="92" fontSize="12" fill="var(--color-muted)">= one {BB.chunkBytes} B chunk · same {BB.readsPerChunk} reads, every time</text>
         </g>
       )}
+      {/* where the chunk goes: the tensor engine's weight buffer */}
+      <g transform="translate(424 196)">
+        <rect width="84" height="54" rx="2" fill={P.te} stroke={P.ink} strokeWidth={1.2} />
+        <text x="42" y="22" textAnchor="middle" fontSize="11" fill={P.ink}>tensor</text>
+        <text x="42" y="36" textAnchor="middle" fontSize="11" fill={P.ink}>engine</text>
+        {Array.from({ length: PIECES }, (_, q) => (
+          <rect key={q} x={10 + q * 16.5} y={42} width={14} height={7} fill={step >= 5 || (step === 4 && mode === 'naive') ? CHUNK_COLORS[cur % CHUNK_COLORS.length] : P.paper} stroke={P.ink3} strokeWidth={0.6} className="fade" />
+        ))}
+      </g>
+      <path d={step === 3 ? 'M250 247 C 330 247, 360 223, 420 223' : mode === 'naive' && step >= 4 ? 'M320 209 C 360 209, 380 223, 420 223' : 'M228 233 C 320 233, 360 223, 420 223'}
+        fill="none" stroke={step === 3 ? P.danger : P.ink} strokeWidth={1.3} strokeDasharray={step === 3 ? '4 4' : undefined} markerEnd="url(#sb-ah)" className="fade" />
+      <text x={508} y={268} textAnchor="end" fontSize="10" fill={P.ink2}>takes {BB.chunkBytes} B at a time</text>
+      <defs><marker id="sb-ah" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill={P.ink} /></marker></defs>
     </svg>
   );
 }
