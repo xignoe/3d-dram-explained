@@ -1,10 +1,10 @@
-import { lazy, type ReactElement } from 'react';
+import { lazy, useRef, type ReactElement } from 'react';
 import { scaleLog } from 'd3-scale';
 import { Chef, MEM_COLOR, Term } from '../components/ui';
 import { Gate3D } from '../components/Gate3D';
 import { HERO, PROBLEMS, STACKING, STREAM_FLIPPING as SF } from '../data/paper';
 import { numberWord } from '../lib/fmt';
-import { useDesktop } from '../lib/hooks';
+import { useDesktop, useInView } from '../lib/hooks';
 import { CLAIMS, COMPARISON, ENERGY_LADDER, LEVEL_FILL, PRESENTATION, type Level, type MemoryCard } from '../data/dmatrix';
 import { P } from '../lib/palette';
 
@@ -80,13 +80,16 @@ function Meter({ label, level, color }: { label: string; level: Level; color: st
 function Card({ m }: { m: MemoryCard }) {
   const Schematic = SCHEMATIC[m.id];
   const color = MEM_COLOR[m.id];
+  // Animate only while the card is on screen.
+  const box = useRef<HTMLDivElement>(null);
+  const inView = useInView(box, '0px');
   return (
     <div className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-x-5 border-t border-line pt-4 sm:block sm:border-t-0 sm:pt-0">
       <div>
         <div className="font-serif text-2xl font-medium leading-none" style={{ color }}>{m.name}</div>
         <div className="sans mt-1.5 text-[0.78rem] leading-snug text-muted">{m.kind}</div>
-        <div className="relative mt-3 aspect-[120/84] sm:mt-4">
-          <Gate3D fallback={<Schematic />}><MemoryMini kind={m.id} /></Gate3D>
+        <div ref={box} className="relative mt-3 aspect-[120/84] sm:mt-4">
+          <Gate3D fallback={<Schematic />}><MemoryMini kind={m.id} active={inView} /></Gate3D>
         </div>
         <div className="sans mt-2 text-[0.72rem] leading-snug text-faint sm:min-h-[2.6em]">{m.layout}</div>
       </div>
