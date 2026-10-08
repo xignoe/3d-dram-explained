@@ -80,6 +80,7 @@ body { overflow-x: clip; background: var(--color-bg); }
     color: var(--color-ink); font-family: var(--font-sans); font-size: 0.82rem; line-height: 1.45; font-style: normal; font-weight: 400;
   }
   .term:hover .term-tip, .term:focus .term-tip { display: block; }
+  .term-tip-below { bottom: auto; top: calc(100% + 8px); }
 
   /* Evidence marks: typographic, not pills. */
   .evidence { display: inline-flex; align-items: center; gap: 0.35rem; font-family: var(--font-sans); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; color: var(--color-muted); white-space: nowrap; }

@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react';
+import { useId, useRef, useState, type ReactNode } from 'react';
 import type { Evidence } from '../data/paper';
 import { GLOSSARY, type GlossaryKey } from '../data/glossary';
 
@@ -22,10 +22,35 @@ export function Badge({ kind, className = '' }: { kind: Evidence; className?: st
 
 export function Term({ k, children }: { k: GlossaryKey; children: ReactNode }) {
   const id = useId();
+  const ref = useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = useState<{ x: number; below: boolean }>({ x: 0, below: false });
+
+  // Keep the tooltip inside the text column (it would otherwise slide under the sticky figure),
+  // and open it below the word when there isn't room above.
+  const place = () => {
+    const el = ref.current;
+    const tip = el?.querySelector<HTMLElement>('.term-tip');
+    if (!el || !tip) return;
+    // A term that wraps onto two lines anchors its tooltip to the first line's box.
+    const r = el.getClientRects()[0] ?? el.getBoundingClientRect();
+    const col = el.closest('.step-card, p, header')?.getBoundingClientRect() ?? { left: 8, right: innerWidth - 8 };
+    const tipW = tip.offsetWidth || Math.min(272, innerWidth * 0.78);
+    const right = Math.min(col.right, innerWidth - 8);
+    const left = Math.max(col.left, 8);
+    let x = 0;
+    if (r.left + tipW > right) x = right - tipW - r.left;
+    if (r.left + x < left) x = left - r.left;
+    // Anything sticky above the text (the figure on phones) counts as covering the space above.
+    const fig = el.closest('section')?.querySelector('figure')?.getBoundingClientRect();
+    const coveredTop = fig && fig.bottom < r.top + 4 && fig.left < r.right && fig.right > r.left ? fig.bottom : 0;
+    const below = r.top - (tip.offsetHeight || 80) - 12 < coveredTop;
+    setPos({ x: Math.round(x), below });
+  };
+
   return (
-    <span className="term" tabIndex={0} aria-describedby={id}>
+    <span ref={ref} className="term" tabIndex={0} aria-describedby={id} onMouseEnter={place} onFocus={place}>
       {children}
-      <span role="tooltip" id={id} className="term-tip">{GLOSSARY[k]}</span>
+      <span role="tooltip" id={id} className={`term-tip ${pos.below ? 'term-tip-below' : ''}`} style={{ left: pos.x }}>{GLOSSARY[k]}</span>
     </span>
   );
 }
