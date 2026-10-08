@@ -1,4 +1,4 @@
-import { scaleLinear } from 'd3-scale';
+import { scaleLog } from 'd3-scale';
 import { Scene, type SceneState } from '../components/Scene';
 import { Chef, MEM_COLOR, Term } from '../components/ui';
 import { P } from '../lib/palette';
@@ -74,25 +74,39 @@ function Pantries({ step, W }: { step: number; W: number }) {
   );
 }
 
+/** Full-memory reads per second as dots on a log axis, ruled at each power of ten like the energy ladder. */
 function Bars({ W }: { W: number }) {
   const sorted = [...ORDER].sort((a, b) => fullMemoryReadsPerSecond(b) - fullMemoryReadsPerSecond(a));
-  const x = scaleLinear().domain([0, fullMemoryReadsPerSecond(sorted[0])]).range([M.l + 40, W - M.r - 135]);
-  const rowH = 74;
+  const x = scaleLog().domain([10, 100000]).range([M.l - 32, W - M.r - 8]);
+  const ticks = [10, 100, 1000, 10000, 100000];
+  const vsHBM = Math.round(fullMemoryReadsPerSecond('dram3d') / fullMemoryReadsPerSecond('hbm'));
+  const TOP = 110, rowH = 76;
+  const bottom = TOP + sorted.length * rowH;
   return (
     <g>
-
+      {ticks.map((t) => (
+        <g key={t}>
+          <line x1={x(t)} x2={x(t)} y1={TOP - 6} y2={bottom} stroke={P.rule} strokeDasharray="2 3" />
+          <text x={x(t)} y={TOP - 14} textAnchor={t === 10 ? 'start' : t === 100000 ? 'end' : 'middle'} fontSize="11" className="svg-num" fill={P.ink3}>{fmt(t, 0)}</text>
+        </g>
+      ))}
+      <line x1={M.l - 40} x2={W - M.r} y1={TOP - 4} y2={TOP - 4} stroke={P.ink} strokeWidth={1.2} />
       {sorted.map((id, i) => {
         const v = fullMemoryReadsPerSecond(id);
-        const yy = 90 + i * rowH;
+        const yy = TOP + i * rowH;
         return (
           <g key={id}>
-            <text x={M.l - 40} y={yy + 20} fontSize="17" fontWeight={500} style={{ fontFamily: 'var(--font-serif)' }} fill={MEM_COLOR[id]}>{MEMORY[id].label}</text>
-            <rect x={x(0)} y={yy + 30} width={Math.max(2, x(v) - x(0))} height={20} fill={MEM_COLOR[id]} className="fade" />
-            <text x={Math.max(x(v), x(0) + 2) + 8} y={yy + 46} fontSize="14" className="svg-num" fill={P.ink}>{fmt(v, 0)} times a second</text>
+            <text x={M.l - 40} y={yy + 26} fontSize="17" fontWeight={500} style={{ fontFamily: 'var(--font-serif)' }} fill={MEM_COLOR[id]}>
+              {MEMORY[id].label}
+              <tspan dx={10} fontSize="13" fontWeight={400} className="svg-num" style={{ fontFamily: 'var(--font-sans)' }} fill={P.ink}>{fmt(v, 0)} times a second</tspan>
+            </text>
+            <line x1={x(10)} x2={x(100000)} y1={yy + 50} y2={yy + 50} stroke={P.rule} />
+            <circle cx={x(v)} cy={yy + 50} r={7} fill={MEM_COLOR[id]} />
+            {id === 'dram3d' && <text x={x(v) + 14} y={yy + 54} fontSize="12" fontWeight={600} className="svg-num" fill={MEM_COLOR.dram3d}>{vsHBM}× HBM</text>}
+            <line x1={M.l - 40} x2={W - M.r} y1={yy + rowH} y2={yy + rowH} stroke={P.rule} strokeOpacity={0.6} />
           </g>
         );
       })}
-
     </g>
   );
 }
@@ -136,12 +150,12 @@ export function S03Pantry() {
       description={(s) =>
         s.step < 3
           ? `Drawing of three memories attached to the same processor, with box area proportional to capacity and channel width proportional to bandwidth. SRAM: ${sram.bandwidthTBs} TB/s, ${sram.capacityGB} GB. HBM: ${hbm.bandwidthTBs} TB/s, ${hbm.capacityGB} GB. 3D-DRAM: ${dram3d.bandwidthTBs} TB/s, ${dram3d.capacityGB} GB.`
-          : `Derived bar chart, bandwidth divided by capacity: SRAM about ${fmt(fullMemoryReadsPerSecond('sram'), 0)} full reads per second, 3D-DRAM about ${fmt(fullMemoryReadsPerSecond('dram3d'), 0)}, HBM about ${fmt(fullMemoryReadsPerSecond('hbm'), 0)}.`
+          : `Derived chart on a log scale, bandwidth divided by capacity: SRAM about ${fmt(fullMemoryReadsPerSecond('sram'), 0)} full reads per second, 3D-DRAM about ${fmt(fullMemoryReadsPerSecond('dram3d'), 0)}, HBM about ${fmt(fullMemoryReadsPerSecond('hbm'), 0)}.`
       }
       visual={(s) => <Visual {...s} />}
       figure={(s) => s.step < 3
         ? { caption: <>The three memories attached to the same {XPU_PFLOPS} PFLOPS compute logic, drawn to scale: each box’s area is proportional to capacity per card, and each channel’s width where it meets the processor is proportional to bandwidth. Source: Table III.</> }
-        : { evidence: 'derived', caption: <>How many times per second each card could read through its entire memory: bandwidth ÷ capacity, linear scale. Our arithmetic on Table III, not a result from the paper.</> }}
+        : { evidence: 'derived', caption: <>How many times per second each card could read through its entire memory: bandwidth ÷ capacity, on a log scale where each gridline is ten times the last. Our arithmetic on Table III, not a result from the paper.</> }}
     />
   );
 }
