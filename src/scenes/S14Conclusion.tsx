@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { scaleLog } from 'd3-scale';
-import { Badge, Chef, MEM_COLOR, Note, Term } from '../components/ui';
+import { Chef, MEM_COLOR, Term } from '../components/ui';
 import { HERO, PROBLEMS, STACKING, STREAM_FLIPPING as SF } from '../data/paper';
 import { numberWord } from '../lib/fmt';
 import { useDesktop } from '../lib/hooks';
@@ -94,6 +94,10 @@ function Card({ m }: { m: MemoryCard }) {
   );
 }
 
+// The presentation's rungs, with the paper's own measurement in place of its 3D vertical I/O estimate.
+const MEASURED = { id: 'paper', what: 'Raptor, measured', energy: `${SF.afterPJPerBit}–${SF.beforePJPerBit} pJ`, lo: SF.afterPJPerBit, hi: SF.beforePJPerBit, perMm: false, highlight: true, measured: true };
+const LADDER = ENERGY_LADDER.map((r) => (r.id === 'io3d' ? MEASURED : { ...r, measured: false }));
+
 /** The energy ladder drawn as a log-scale ladder, with the paper's own measurement on the same axis. */
 function EnergyLadder() {
   // Phones draw it in fewer units so the type stays near its true size.
@@ -102,14 +106,8 @@ function EnergyLadder() {
   const x = scaleLog().domain([0.01, 10]).range([X0, X1]);
   const ticks = [{ v: 0.01, t: '10 fJ' }, { v: 0.1, t: '100 fJ' }, { v: 1, t: '1 pJ' }, { v: 10, t: '10 pJ' }];
   const ROW = 40, TOP = 32;
-  const tone: Record<string, string> = { sram: P.sram, wire: P.ink3, io3d: P.dram, interposer: P.hbm, hbm4: P.hbm };
-  // The paper's measurement sits right after the 3D I/O row it should be compared with.
-  const rows = [
-    ...ENERGY_LADDER.slice(0, 3).map((r) => ({ ...r, measured: false })),
-    { id: 'paper', what: 'Raptor, measured', energy: `${SF.afterPJPerBit}–${SF.beforePJPerBit} pJ`, lo: SF.afterPJPerBit, hi: SF.beforePJPerBit, perMm: false, highlight: false, measured: true },
-    ...ENERGY_LADDER.slice(3).map((r) => ({ ...r, measured: false })),
-  ];
-  const H = TOP + rows.length * ROW + 6;
+  const tone: Record<string, string> = { sram: P.sram, wire: P.ink3, interposer: P.hbm, hbm4: P.hbm };
+  const H = TOP + LADDER.length * ROW + 6;
   return (
     <div>
       <div className="font-serif text-2xl font-medium leading-none text-ink">The energy ladder</div>
@@ -122,7 +120,7 @@ function EnergyLadder() {
           </g>
         ))}
         <line x1={0} x2={W} y1={TOP - 6} y2={TOP - 6} stroke={P.ink} strokeWidth={1.2} />
-        {rows.map((r, i) => {
+        {LADDER.map((r, i) => {
           const y = TOP + i * ROW + ROW / 2;
           const c = r.measured ? P.ink : tone[r.id];
           return (
@@ -152,14 +150,14 @@ function EnergyLadder() {
         })}
       </svg>
       <p className="sans mt-3 text-[0.8rem] leading-relaxed text-muted">
-        3D I/O lands about <span className="num font-semibold text-dram3d">{CLAIMS.vsHBMEnergyX}×</span> below HBM: a millimetre-scale vertical path with no <Term k="phy">PHY</Term>, instead of a centimetre-scale interposer trace plus a PHY. Open circles are per millimetre travelled.
+        Raptor’s measured I/O lands well below HBM, about <span className="num font-semibold text-dram3d">{STACKING.vsHBM3EnergyX}×</span> less than reported figures for HBM3 by the paper’s own comparison: a millimetre-scale vertical path with no <Term k="phy">PHY</Term>, instead of a centimetre-scale interposer trace plus a PHY. Open circles are per millimetre travelled.
       </p>
     </div>
   );
 }
 
 export function S14Conclusion() {
-  const description = `Comparison from ${PRESENTATION.label}. ${COMPARISON.map((m) => `${m.name}, ${m.kind}: capacity ${m.capacity}, bandwidth ${m.bandwidth}, power ${m.power}`).join('. ')}. Energy per bit: ${ENERGY_LADDER.map((r) => `${r.what} ${r.energy}`).join('; ')}.`;
+  const description = `Comparison from ${PRESENTATION.label}. ${COMPARISON.map((m) => `${m.name}, ${m.kind}: capacity ${m.capacity}, bandwidth ${m.bandwidth}, power ${m.power}`).join('. ')}. Energy per bit: ${LADDER.map((r) => `${r.what} ${r.energy}`).join('; ')}.`;
   return (
     <section id="conclusion" aria-labelledby="conclusion-title" className="px-4 pb-[12svh] pt-[10svh] sm:px-6 lg:px-12">
       <div className="mx-auto max-w-[1320px] border-t-[1.5px] border-ink pt-8">
@@ -210,10 +208,6 @@ export function S14Conclusion() {
             </p>
           </div>
 
-          <figcaption className="fig-caption mt-4">
-            Ratings and energy figures from {PRESENTATION.label} (“{PRESENTATION.slideTitle}”), not from the paper; schematics are not to scale. For comparison, the paper measured <span className="num">{SF.beforePJPerBit}</span> pJ/bit with every wire switching and <span className="num">{SF.afterPJPerBit}</span> pJ/bit with stream flipping <Badge kind="measured" className="!text-[0.62rem]" />.
-          </figcaption>
-          <Note>The presentation’s “about 10×” compares against an HBM4 system figure that includes on-chip energy. The paper’s own comparison, about {STACKING.vsHBM3EnergyX}× less than reported figures for HBM3, uses the I/O energy alone.</Note>
         </figure>
 
         <div className="mt-12 max-w-[38rem]">
