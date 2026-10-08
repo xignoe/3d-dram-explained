@@ -5,7 +5,7 @@ import { PRIOR_WORK, RESULTS as R } from '../data/paper';
 function Tile({ value, label, color }: { value: number; label: React.ReactNode; color: string }) {
   return (
     <div className="px-2 py-3 first:pl-0 lg:px-5 lg:py-4">
-      <div className="num font-serif text-4xl font-medium leading-none tracking-tight lg:text-7xl" style={{ color }}>{value.toFixed(2)}×</div>
+      <div className="num font-serif text-3xl font-medium leading-none tracking-tight @min-[24rem]:text-4xl @min-[29.5rem]:text-5xl @min-[35rem]:text-6xl @min-[40rem]:text-7xl" style={{ color }}>{value.toFixed(2)}×</div>
       <div className="sans mt-2 text-[0.7rem] leading-snug text-muted lg:text-sm">{label}</div>
     </div>
   );
@@ -43,7 +43,8 @@ function Visual({ step }: SceneState) {
   return (
     <div className="flex h-full flex-col justify-center-safe gap-3 lg:gap-8">
       <div className="sans hidden text-sm text-muted lg:block">Averaged across the paper’s models</div>
-      <div className="grid grid-cols-3 divide-x divide-line border-y-[1.5px] border-ink">
+      {/* Tiles size their numbers to this row, not the viewport, so all three match and never overflow. */}
+      <div className="@container grid grid-cols-3 divide-x divide-line border-y-[1.5px] border-ink">
         <Tile value={R.throughputVsHBM} color={MEM_COLOR.dram3d} label={<>more tokens per second per card than <span style={{ color: MEM_COLOR.hbm }}>HBM</span></>} />
         <Tile value={R.throughputVsSRAM} color={MEM_COLOR.dram3d} label={<>more tokens per second per card than <span className="text-sram-ink">SRAM</span></>} />
         <Tile value={R.tpotLowerVsHBM} color={MEM_COLOR.dram3d} label={<>less waiting per token than <span style={{ color: MEM_COLOR.hbm }}>HBM</span></>} />
