@@ -1,4 +1,4 @@
-import { scaleLog } from 'd3-scale';
+import { scaleLinear } from 'd3-scale';
 import { Scene, type SceneState } from '../components/Scene';
 import { Chef, MEM_COLOR, Term } from '../components/ui';
 import { P } from '../lib/palette';
@@ -76,7 +76,7 @@ function Pantries({ step, W }: { step: number; W: number }) {
 
 function Bars({ W }: { W: number }) {
   const sorted = [...ORDER].sort((a, b) => fullMemoryReadsPerSecond(b) - fullMemoryReadsPerSecond(a));
-  const x = scaleLog().domain([10, 100000]).range([M.l + 40, W - M.r - 135]);
+  const x = scaleLinear().domain([0, fullMemoryReadsPerSecond(sorted[0])]).range([M.l + 40, W - M.r - 135]);
   const rowH = 74;
   return (
     <g>
@@ -87,8 +87,8 @@ function Bars({ W }: { W: number }) {
         return (
           <g key={id}>
             <text x={M.l - 40} y={yy + 20} fontSize="17" fontWeight={500} style={{ fontFamily: 'var(--font-serif)' }} fill={MEM_COLOR[id]}>{MEMORY[id].label}</text>
-            <rect x={x(10)} y={yy + 30} width={x(v) - x(10)} height={20} fill={MEM_COLOR[id]} className="fade" />
-            <text x={x(v) + 8} y={yy + 46} fontSize="14" className="svg-num" fill={P.ink}>{fmt(v, 0)} times a second</text>
+            <rect x={x(0)} y={yy + 30} width={Math.max(2, x(v) - x(0))} height={20} fill={MEM_COLOR[id]} className="fade" />
+            <text x={Math.max(x(v), x(0) + 2) + 8} y={yy + 46} fontSize="14" className="svg-num" fill={P.ink}>{fmt(v, 0)} times a second</text>
           </g>
         );
       })}
@@ -141,7 +141,7 @@ export function S03Pantry() {
       visual={(s) => <Visual {...s} />}
       figure={(s) => s.step < 3
         ? { caption: <>The three memories attached to the same {XPU_PFLOPS} PFLOPS compute logic, drawn to scale: each box’s area is proportional to capacity per card, and each channel’s width where it meets the processor is proportional to bandwidth. Source: Table III.</> }
-        : { evidence: 'derived', caption: <>How many times per second each card could read through its entire memory: bandwidth ÷ capacity, log scale. Our arithmetic on Table III, not a result from the paper.</> }}
+        : { evidence: 'derived', caption: <>How many times per second each card could read through its entire memory: bandwidth ÷ capacity, linear scale. Our arithmetic on Table III, not a result from the paper.</> }}
     />
   );
 }
