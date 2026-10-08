@@ -67,9 +67,17 @@ const FOCUS: R[] = [CARD, M0, C0, G0, S0, B0];
 /* ---------------- camera ---------------- */
 
 type Cam = { cx: number; cy: number; s: number };
+/** Screen pixels kept clear around the focus for labels: they sit up to ~18px above or below it.
+ *  The bank's side labels are wider: "1,364 rows" on the left, "column read: 32 B" on the right. */
+const LABEL_PAD = 28, BANK_PAD_LEFT = 88, BANK_PAD_RIGHT = 134;
 function camFor(r: R, vw: number, vh: number, level: number): Cam {
-  const fill = level === LEVELS.length - 1 ? 0.62 : 0.86; // leave room for labels around the bank
-  return { cx: r.x + r.w / 2, cy: r.y + r.h / 2, s: Math.min(vw / r.w, vh / r.h) * fill };
+  const bank = level === LEVELS.length - 1;
+  const fill = bank ? 0.62 : 0.86;
+  const [padL, padR] = bank ? [BANK_PAD_LEFT, BANK_PAD_RIGHT] : [LABEL_PAD, LABEL_PAD];
+  // On small boxes a fractional margin is too thin for the labels set just outside the focus.
+  const s = Math.min(Math.min(vw * fill, vw - padL - padR) / r.w, Math.min(vh * fill, vh - 2 * LABEL_PAD) / r.h);
+  // Centre the focus together with its side labels rather than the focus alone.
+  return { cx: r.x + r.w / 2 + (padR - padL) / 2 / s, cy: r.y + r.h / 2, s };
 }
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 

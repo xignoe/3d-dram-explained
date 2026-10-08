@@ -128,5 +128,10 @@ export function Scene({ id, num, kicker, eyebrow, title, steps, description, vis
 
 /** Scroll a scene's step into view (used by breadcrumbs). */
 export function scrollToStep(sceneId: string, step: number, reduced: boolean) {
-  document.getElementById(`${sceneId}-step-${step}`)?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+  const el = document.getElementById(`${sceneId}-step-${step}`);
+  if (!el) return;
+  // Below lg the sticky figure covers the top 58svh and steps trigger at 82%, so a step scrolled to the
+  // very top would leave the next one active. Land it just below the figure instead.
+  const offset = window.matchMedia('(min-width: 1024px)').matches ? 0 : window.innerHeight * 0.6;
+  window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - offset, behavior: reduced ? 'auto' : 'smooth' });
 }
