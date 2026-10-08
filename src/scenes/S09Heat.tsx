@@ -288,7 +288,7 @@ export function S09Heat() {
     <Scene
       id="heat"
       num={9}
-      kicker="Problem 4 · Heat and refresh"
+      kicker="Challenge 4 · Heat and refresh"
       eyebrow={<ProblemChips active={3} />}
       title="Keeping a hot stack reliable"
       steps={[

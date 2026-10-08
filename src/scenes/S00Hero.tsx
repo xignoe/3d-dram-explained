@@ -78,7 +78,7 @@ export function Hero() {
               Running a language model is largely a memory problem.
             </h1>
             <p className="mt-6 max-w-[36ch] text-[1.35rem] italic leading-snug text-muted">
-              Raptor, a chip from d-Matrix, puts its memory directly underneath its processor. This is a guide to why that helps, and to the {numberWord(PROBLEMS.length)} engineering problems it created.
+              Raptor, a chip from d-Matrix, puts its memory directly underneath its processor. This is an independent guide to why that helps, and to how its designers addressed the {numberWord(PROBLEMS.length)} engineering challenges it created.
             </p>
             <p className="sans mt-6 max-w-[52ch] text-sm leading-relaxed text-muted">
               Based on “<a href={`https://doi.org/${CITATION.doi}`}>{CITATION.title}</a>,” by {CITATION.authors[0]} and {numberWord(CITATION.authors.length - 1)} colleagues at {CITATION.affiliations[0]} (Nair is also at the {CITATION.affiliations[1]}), presented at ISCA {CITATION.year}. The paper reports about{' '}

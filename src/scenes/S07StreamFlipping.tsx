@@ -200,7 +200,7 @@ export function S07StreamFlipping() {
     <Scene
       id="stream-flipping"
       num={7}
-      kicker="Problem 2 · Stream flipping"
+      kicker="Challenge 2 · Stream flipping"
       eyebrow={<ProblemChips active={1} />}
       title="Reducing the energy spent switching wires"
       steps={[

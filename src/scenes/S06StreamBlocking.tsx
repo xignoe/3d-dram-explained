@@ -254,13 +254,13 @@ export function S06StreamBlocking() {
     <Scene
       id="stream-blocking"
       num={6}
-      kicker="Problem 1 · Stream blocking"
+      kicker="Challenge 1 · Stream blocking"
       eyebrow={<ProblemChips active={0} />}
       title="Fitting 128-byte chunks into three banks"
       steps={[
         <p key="0">Each tensor engine receives data in <Term k="chunk">chunks</Term> of <strong className="num">{BB.chunkBytes} bytes</strong>. A single bank returns <strong className="num">{BB.bytesPerBankRead} bytes</strong> per read, so the natural design would give every channel {BB.banksPerChannelIdeal} banks. With <strong className="num">{BB.channelsPerChiplet}</strong> channels per chiplet, that would take <strong className="num">{fmt(BB.banksNeeded)}</strong> banks.</p>,
         <p key="1">The DRAM die, however, has only <strong className="num">{BB.banksOnDie}</strong> banks.</p>,
-        <p key="2">The design also keeps <strong className="num">{BB.spares}</strong> of them in reserve as spares, for reasons covered in the third problem. That leaves <strong className="num">{BB.usable}</strong>, which works out to exactly <strong className="num">{BB.banksPerChannel}</strong> banks for each of the {BB.channelsPerChiplet} channels.</p>,
+        <p key="2">The design also keeps <strong className="num">{BB.spares}</strong> of them in reserve as spares, for reasons covered in the third challenge. That leaves <strong className="num">{BB.usable}</strong>, which works out to exactly <strong className="num">{BB.banksPerChannel}</strong> banks for each of the {BB.channelsPerChiplet} channels.</p>,
         <p key="3">Three banks return <strong className="num">{BB.bytesPerThreeBankRead} bytes</strong> per read rather than {BB.chunkBytes}. A simple layout would need {numberWord(BB.readsPerChunk)} reads for every chunk, fetching {BB.readsPerChunk * BB.bytesPerThreeBankRead} bytes to use {BB.chunkBytes} and throwing away a third of what it reads. The paper calls this overfetch.</p>,
         <p key="4">One fix is to stagger the data so that pieces of a chunk straddle two columns, read both into a {SB.naiveBufferBytes}-byte buffer, and shift the pieces into place, tracking a different alignment for each address. Nothing is wasted, but the shifting circuitry is complicated and makes it harder to run the memory controller at high speed.</p>,
         <>

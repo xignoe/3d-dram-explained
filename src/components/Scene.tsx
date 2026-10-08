@@ -28,7 +28,7 @@ interface SceneProps {
   num: number;
   /** Short section name, set in small caps above the title. */
   kicker: ReactNode;
-  /** Optional line above the kicker (e.g. "Problem 2 of 4"). */
+  /** Optional line above the kicker (e.g. "Challenge 2 of 4"). */
   eyebrow?: ReactNode;
   title: ReactNode;
   steps: ReactNode[];

@@ -118,13 +118,13 @@ export function S08BankChaining() {
     <Scene
       id="bank-chaining"
       num={8}
-      kicker="Problem 3 · Bank chaining"
+      kicker="Challenge 3 · Bank chaining"
       eyebrow={<ProblemChips active={2} />}
       title="Working around faulty banks"
       steps={[
         <>
           <p key="0">A die with hundreds of <Term k="bank">banks</Term> is likely to have a few that don’t work, and throwing those dies away would be expensive. Simply switching off a faulty bank isn’t a good answer either. Its channel ends up narrower than the others, and because the tensor engines consume their channels in lockstep, one narrow channel sets the pace for all of them.</p>
-          <p>Raptor’s solution is to arrange the banks in chains with spares mixed in among them. These are the {BANK_BUDGET.spares} spare banks mentioned in the first problem.</p>
+          <p>Raptor’s solution is to arrange the banks in chains with spares mixed in among them. These are the {BANK_BUDGET.spares} spare banks mentioned in the first challenge.</p>
         </>,
         <p key="1">The figure shows one chain from the paper’s example, with <strong className="num">{BC.functional}</strong> banks and <strong className="num">{BC.redundant}</strong> spares forming <strong className="num">{BC.channels}</strong> channels of {BC.banksPerChannel}. When a bank fails, every channel after it moves over by one position.</p>,
         <p key="2">After a second fault the channels move again, and all {BC.channels} still have their full width. The reassignment is done by simple multiplexers on the logic die, next to the tensor engines, so no long wires are needed to route around the faulty banks.</p>,
