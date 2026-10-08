@@ -145,4 +145,11 @@ svg text { font-family: var(--font-sans); }
 
 @keyframes leak { 0% { fill-opacity: 1; } 100% { fill-opacity: 0.2; } }
 @keyframes sweep { from { transform: translateY(0); } to { transform: translateY(var(--sweep-dist)); } }
+/* Fig. 9 */
+@keyframes scan-x { from { transform: translateX(0); } to { transform: translateX(var(--scan-dist)); } }
+@keyframes tick-flash { 0% { transform: scaleY(1.45); } 18%, 100% { transform: scaleY(1); } }
+@keyframes grow-x { from { transform: scaleX(0); } }
+@keyframes grow-y { from { transform: scaleY(0); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes flow { to { stroke-dashoffset: -18; } }
 @keyframes hammer { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(5px); } }

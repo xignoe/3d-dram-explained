@@ -48,6 +48,9 @@ function RefreshPanel({ step }: { step: number }) {
   const ticks = (every: number) => Array.from({ length: Math.floor(span / every) + 1 }, (_, i) => i * every);
   const hot = temp > R.hotThresholdC;
   const X = (ms: number) => 12 + (ms / span) * 376;
+  // A playhead crosses the whole span every SCAN seconds; each tick pops as it passes.
+  const SCAN = 6;
+  const flash = (t: number) => ({ animation: `tick-flash ${SCAN}s linear infinite`, animationDelay: `${(t / span - 1) * SCAN}s`, transformBox: 'fill-box' as const, transformOrigin: 'center' });
 
   return (
     <div className="flex h-full flex-col justify-center-safe gap-5">
@@ -57,13 +60,17 @@ function RefreshPanel({ step }: { step: number }) {
         <span className="flex justify-between text-[0.7rem] text-faint"><span>{TOY.tempSliderMinC} °C</span><span>threshold {R.hotThresholdC} °C</span><span>max {R.maxJunctionC} °C</span></span>
       </label>
       <ChargeBank interval={interval} />
-      <svg viewBox="0 0 400 150" className="w-full" aria-hidden>
+      {/* Keyed by interval so the playhead and every tick restart together and stay in step. */}
+      <svg key={interval} viewBox="0 0 400 150" className="w-full" aria-hidden>
         <text x="12" y="16" fontSize="12" fill="var(--color-dram3d)">{hot ? 'Required above ' + R.hotThresholdC + ' °C: every ' : 'Cooler reference point: every '}<tspan className="svg-num" fontSize="14">{interval} ms</tspan></text>
         <line x1={X(0)} x2={X(span)} y1="44" y2="44" stroke="var(--color-line)" />
-        {ticks(interval).map((t) => <rect key={t} x={X(t) - 2} y="30" width="4" height="28" rx="1" fill="var(--color-dram3d)" className="fade" />)}
+        {ticks(interval).map((t) => <rect key={t} x={X(t) - 2} y="30" width="4" height="28" rx="1" fill="var(--color-dram3d)" className="fade" style={flash(t)} />)}
         <text x="12" y="88" fontSize="12" fill="var(--color-hbm)">Typical HBM: every <tspan className="svg-num" fontSize="14">{R.hbmNominalMs} ms</tspan></text>
         <line x1={X(0)} x2={X(span)} y1="116" y2="116" stroke="var(--color-line)" />
-        {ticks(R.hbmNominalMs).map((t) => <rect key={t} x={X(t) - 2} y="102" width="4" height="28" rx="1" fill="var(--color-hbm)" opacity="0.7" />)}
+        {ticks(R.hbmNominalMs).map((t) => <rect key={t} x={X(t) - 2} y="102" width="4" height="28" rx="1" fill="var(--color-hbm)" opacity="0.7" style={flash(t)} />)}
+        <g style={{ animation: `scan-x ${SCAN}s linear infinite`, ['--scan-dist' as string]: `${X(span) - X(0)}px` }}>
+          <line x1={X(0)} x2={X(0)} y1="26" y2="134" stroke={P.ink} strokeOpacity={0.35} />
+        </g>
         <text x={X(0)} y="146" fontSize="10" fill="var(--color-faint)">0 ms</text>
         <text x={X(span)} y="146" fontSize="10" textAnchor="end" fill="var(--color-faint)">{span} ms</text>
       </svg>
@@ -74,12 +81,18 @@ function RefreshPanel({ step }: { step: number }) {
 
 function RowsPanel() {
   const unit = 13, H = 40;
+  // Refresh walks the rows at the same pace in both banks, so a pass takes time in proportion to rows.
+  const SECONDS_PER_UNIT = 0.8;
   const bank = (x: number, y: number, mult: number, fill: string, dashed = false) => (
     <g>
       <rect x={x} y={y} width={unit * mult} height={H} fill={fill} stroke={P.ink} strokeWidth={1} strokeDasharray={dashed ? '4 3' : undefined} fillOpacity={dashed ? 0.25 : 1} />
       {Array.from({ length: Math.floor(unit * mult / 5) }, (_, i) => (
         <line key={i} x1={x + 2.5 + i * 5} x2={x + 2.5 + i * 5} y1={y + 4} y2={y + H - 4} stroke={P.paper} strokeOpacity={dashed ? 0.4 : 0.5} strokeWidth={1} />
       ))}
+      {!dashed && (
+        <line x1={x + 1} x2={x + 1} y1={y + 1} y2={y + H - 1} stroke={P.sram} strokeWidth={2}
+          style={{ animation: `scan-x ${mult * SECONDS_PER_UNIT}s linear infinite`, ['--scan-dist' as string]: `${unit * mult - 2}px` }} />
+      )}
     </g>
   );
   return (
@@ -93,7 +106,7 @@ function RowsPanel() {
         <text x={unit * R.fewerRowsMin} y={168} fontSize="10" fill={P.ink3}>{R.fewerRowsMin}×</text>
         <text x={unit * R.fewerRowsMax} y={168} fontSize="10" textAnchor="end" fill={P.ink3}>{R.fewerRowsMax}×</text>
       </svg>
-      <p className="sans text-sm text-muted">Each stripe is a slice of rows, drawn to scale. Refresh works through a bank row by row, so a bank with far fewer rows finishes each pass much sooner.</p>
+      <p className="sans text-sm text-muted">Each stripe is a slice of rows, drawn to scale. Refresh works through a bank row by row, so a bank with far fewer rows finishes each pass much sooner. The orange line sweeps both banks at the same pace.</p>
     </div>
   );
 }
@@ -103,10 +116,10 @@ function TablePanel() {
   return (
     <div className="flex h-full flex-col justify-center-safe gap-4">
       <div className="sans text-sm text-muted">Bandwidth lost to refresh, at {TABLE1_FREQ_MHZ} MHz</div>
-      {TABLE1.map((r) => (
+      {TABLE1.map((r, i) => (
         <div key={r.intervalMs}>
           <div className="mb-1 flex justify-between text-sm"><span className="text-ink">every <span className="num">{r.intervalMs} ms</span></span><span className="num text-ink">{r.overheadPct.toFixed(2)}%</span></div>
-          <div className="h-5 bg-surface-2"><div className="h-full " style={{ width: `${(r.overheadPct / max) * 100}%`, background: r.intervalMs === R.hotIntervalMs ? 'var(--color-dram3d)' : 'var(--color-faint)' }} /></div>
+          <div className="h-5 bg-surface-2"><div className="h-full origin-left" style={{ width: `${(r.overheadPct / max) * 100}%`, background: r.intervalMs === R.hotIntervalMs ? 'var(--color-dram3d)' : 'var(--color-faint)', animation: `grow-x 0.8s cubic-bezier(.2,.7,.2,1) ${i * 0.12}s both` }} /></div>
           <div className="mt-0.5 text-[0.7rem] text-faint">leaves <span className="num">{r.bandwidthTBs}</span> TB/s</div>
         </div>
       ))}
@@ -215,7 +228,7 @@ function HeatStack() {
 }
 
 /** A thermometer whose column reaches `temp` (or overflows past the top when `over`). */
-function Thermometer({ x, y, temp, over, label }: { x: number; y: number; temp: number; over?: boolean; label: string }) {
+function Thermometer({ x, y, temp, over, label, delay = 0 }: { x: number; y: number; temp: number; over?: boolean; label: string; delay?: number }) {
   const lo = TOY.thermoMinC, hi = TOY.thermoMaxC, h = 120;
   const yOf = (t: number) => y + h - ((Math.min(t, hi) - lo) / (hi - lo)) * h;
   const top = over ? y - 6 : yOf(temp);
@@ -224,7 +237,8 @@ function Thermometer({ x, y, temp, over, label }: { x: number; y: number; temp: 
     <g>
       <rect x={x - 6} y={y - 8} width={12} height={h + 10} rx={6} fill={P.paper} stroke={P.ink} strokeWidth={1} />
       <circle cx={x} cy={y + h + 8} r={10} fill={hot ? P.danger : P.dram} stroke={P.ink} strokeWidth={1} />
-      <rect x={x - 3} y={top} width={6} height={y + h + 6 - top} fill={hot ? P.danger : P.dram} />
+      <rect x={x - 3} y={top} width={6} height={y + h + 6 - top} fill={hot ? P.danger : P.dram}
+        style={{ animation: `grow-y 1.1s cubic-bezier(.2,.7,.2,1) ${delay}s both`, transformBox: 'fill-box', transformOrigin: 'bottom' }} />
       <line x1={x - 12} x2={x + 12} y1={yOf(TH.limitC)} y2={yOf(TH.limitC)} stroke={P.danger} strokeDasharray="3 2" />
       <text x={x} y={y + h + 36} textAnchor="middle" fontSize="12" style={{ fontFamily: 'var(--font-serif)' }} fill={P.ink}>{label}</text>
     </g>
@@ -243,7 +257,9 @@ function CoolingPanel() {
           {Array.from({ length: 6 }, (_, i) => <rect key={i} x={8 + i * 8} y={10} width={4} height={34} fill={P.logicDark} />)}
           <rect x={4} y={44} width={52} height={8} fill={P.logicDark} />
           <circle cx={78} cy={30} r={18} fill={P.paper} />
-          {[0, 120, 240].map((r) => <path key={r} d="M78 30 q 8 -14 0 -16" transform={`rotate(${r} 78 30)`} fill="none" />)}
+          <g style={{ animation: 'spin 5s linear infinite', transformOrigin: '78px 30px' }}>
+            {[0, 120, 240].map((r) => <path key={r} d="M78 30 q 8 -14 0 -16" transform={`rotate(${r} 78 30)`} fill="none" />)}
+          </g>
         </g>
         {/* optimized heatsink: tall, dense fins */}
         <g transform={`translate(${col(1) - 40} 6)`} stroke={P.ink} strokeWidth={1}>
@@ -255,10 +271,13 @@ function CoolingPanel() {
           <rect x={0} y={30} width={80} height={20} rx={3} fill={P.hbmTint} />
           <path d="M18 30 V8 H-6" fill="none" stroke={P.hbm} strokeWidth={4} />
           <path d="M62 30 V8 H86" fill="none" stroke={P.hbm} strokeWidth={4} />
+          {/* coolant: in through the left pipe, out through the right */}
+          <path d="M18 30 V8 H-6" fill="none" stroke={P.hbmTint} strokeWidth={1.6} strokeDasharray="3 6" style={{ animation: 'flow 1.2s linear infinite reverse' }} />
+          <path d="M62 30 V8 H86" fill="none" stroke={P.hbmTint} strokeWidth={1.6} strokeDasharray="3 6" style={{ animation: 'flow 1.2s linear infinite' }} />
         </g>
         <Thermometer x={col(0)} y={100} temp={TH.limitC} over label={air.label} />
-        <Thermometer x={col(1)} y={100} temp={opt.peakAt106C} label={opt.label} />
-        <Thermometer x={col(2)} y={100} temp={liquid.belowC} label={liquid.label} />
+        <Thermometer x={col(1)} y={100} temp={opt.peakAt106C} label={opt.label} delay={0.15} />
+        <Thermometer x={col(2)} y={100} temp={liquid.belowC} label={liquid.label} delay={0.3} />
         <g fontSize="11" fill={P.ink2} textAnchor="middle">
           <text x={col(0)} y={282}><tspan x={col(0)} fill={P.danger}>over {TH.limitC} °C</tspan><tspan x={col(0)} dy={14}>fits only {air.maxChipletW} W</tspan></text>
           <text x={col(1)} y={282}><tspan x={col(1)} fill={P.ink}>≈{opt.peakAt106C} °C</tspan><tspan x={col(1)} dy={14}>headroom to ≈{opt.headroomW} W</tspan></text>
