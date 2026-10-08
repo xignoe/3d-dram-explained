@@ -33,7 +33,7 @@ function Spark({ series, label, color, rising }: { series: 'latency3Bank' | 'ban
 function ChunkPath({ reduced }: { reduced: boolean }) {
   const pieces = BANK_BUDGET.chunkBytes / BANK_BUDGET.bytesPerBankRead;
   return (
-    <svg viewBox="0 0 520 130" className="w-full" aria-hidden>
+    <svg viewBox="0 0 520 134" className="w-full" aria-hidden>
       <defs>
         <path id="chunk-route" d="M120 92 C 220 92, 300 40, 392 40" />
         <marker id="cp-ah" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill={P.ink} /></marker>
