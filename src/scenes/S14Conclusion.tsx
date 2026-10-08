@@ -1,6 +1,9 @@
 import type { ReactElement } from 'react';
+import { scaleLog } from 'd3-scale';
 import { Badge, Chef, MEM_COLOR, Note, Term } from '../components/ui';
-import { HERO, STACKING, STREAM_FLIPPING as SF } from '../data/paper';
+import { HERO, PROBLEMS, STACKING, STREAM_FLIPPING as SF } from '../data/paper';
+import { numberWord } from '../lib/fmt';
+import { useDesktop } from '../lib/hooks';
 import { CLAIMS, COMPARISON, ENERGY_LADDER, LEVEL_FILL, PRESENTATION, type Level, type MemoryCard } from '../data/dmatrix';
 import { P } from '../lib/palette';
 
@@ -91,29 +94,65 @@ function Card({ m }: { m: MemoryCard }) {
   );
 }
 
+/** The energy ladder drawn as a log-scale ladder, with the paper's own measurement on the same axis. */
 function EnergyLadder() {
+  // Phones draw it in fewer units so the type stays near its true size.
+  const narrow = !useDesktop();
+  const W = narrow ? 350 : 430, LABEL = narrow ? 138 : 158, X0 = LABEL + 14, X1 = W - 14;
+  const x = scaleLog().domain([0.01, 10]).range([X0, X1]);
+  const ticks = [{ v: 0.01, t: '10 fJ' }, { v: 0.1, t: '100 fJ' }, { v: 1, t: '1 pJ' }, { v: 10, t: '10 pJ' }];
+  const ROW = 40, TOP = 32;
+  const tone: Record<string, string> = { sram: P.sram, wire: P.ink3, io3d: P.dram, interposer: P.hbm, hbm4: P.hbm };
+  // The paper's measurement sits right after the 3D I/O row it should be compared with.
+  const rows = [
+    ...ENERGY_LADDER.slice(0, 3).map((r) => ({ ...r, measured: false })),
+    { id: 'paper', what: 'Raptor, measured', energy: `${SF.afterPJPerBit}–${SF.beforePJPerBit} pJ`, lo: SF.afterPJPerBit, hi: SF.beforePJPerBit, perMm: false, highlight: false, measured: true },
+    ...ENERGY_LADDER.slice(3).map((r) => ({ ...r, measured: false })),
+  ];
+  const H = TOP + rows.length * ROW + 6;
   return (
     <div>
       <div className="font-serif text-2xl font-medium leading-none text-ink">The energy ladder</div>
-      <div className="sans mt-1.5 text-[0.78rem] text-muted">Energy to move one bit</div>
-      <table className="sans mt-4 w-full border-y-[1.5px] border-ink text-left text-[0.86rem]">
-        <thead>
-          <tr className="border-b border-line text-[0.72rem] text-muted">
-            <th className="py-2 font-normal">Memory or interconnect</th>
-            <th className="py-2 text-right font-normal">Energy per bit</th>
-          </tr>
-        </thead>
-        <tbody>
-          {ENERGY_LADDER.map((r) => (
-            <tr key={r.what} className={`border-b border-line last:border-b-0 ${r.highlight ? 'bg-dram3d/10' : ''}`}>
-              <td className={`py-2.5 pl-2 ${r.highlight ? 'font-semibold text-dram3d' : 'text-ink'}`}>{r.what}</td>
-              <td className={`num py-2.5 pr-2 text-right ${r.highlight ? 'font-semibold text-dram3d' : 'text-ink'}`}>{r.energy}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="sans mt-1.5 text-[0.78rem] text-muted">Energy to move one bit, log scale</div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 w-full" aria-hidden>
+        {ticks.map((k) => (
+          <g key={k.v}>
+            <line x1={x(k.v)} x2={x(k.v)} y1={TOP - 8} y2={H - 4} stroke={P.rule} strokeDasharray="2 3" />
+            <text x={x(k.v)} y={TOP - 14} textAnchor="middle" fontSize="11" className="svg-num" fill={P.ink3}>{k.t}</text>
+          </g>
+        ))}
+        <line x1={0} x2={W} y1={TOP - 6} y2={TOP - 6} stroke={P.ink} strokeWidth={1.2} />
+        {rows.map((r, i) => {
+          const y = TOP + i * ROW + ROW / 2;
+          const c = r.measured ? P.ink : tone[r.id];
+          return (
+            <g key={r.id}>
+              {r.highlight && <rect x={0} y={y - ROW / 2 + 1} width={W} height={ROW - 2} fill={P.dramTint} fillOpacity={0.35} />}
+              <line x1={0} x2={W} y1={y + ROW / 2} y2={y + ROW / 2} stroke={P.rule} strokeOpacity={0.6} />
+              <text x={4} y={y - 2} fontSize="13" fontWeight={r.highlight || r.measured ? 600 : 400} fill={r.highlight ? P.dram : P.ink}>{r.what}</text>
+              <text x={4} y={y + 13} fontSize="11.5" className="svg-num" fill={P.ink2}>{r.energy}{r.measured ? '  ■ paper' : ''}</text>
+              {r.measured ? (
+                [r.lo, r.hi].map((v) => <rect key={v} x={x(v) - 4} y={y - 4} width={8} height={8} fill={P.ink} />)
+              ) : r.id === 'hbm4' ? (
+                <g>
+                  <rect x={x(r.lo)} y={y - 3.5} width={x(r.hi) - x(r.lo)} height={7} fill={c} fillOpacity={0.3} />
+                  <circle cx={x(r.lo)} cy={y} r={5} fill={c} />
+                  <line x1={x(r.hi)} x2={x(r.hi)} y1={y - 6} y2={y + 6} stroke={c} strokeWidth={1.5} />
+                </g>
+              ) : r.lo !== r.hi ? (
+                <rect x={x(r.lo) - 2} y={y - 5} width={x(r.hi) - x(r.lo) + 4} height={10} rx={5} fill={c} />
+              ) : (
+                <g>
+                  <circle cx={x(r.lo)} cy={y} r={5} fill={r.perMm ? P.paper : c} stroke={c} strokeWidth={1.6} />
+                  {r.perMm && !narrow && <text x={x(r.lo) + 9} y={y + 3.5} fontSize="11" fill={P.ink3}>per mm</text>}
+                </g>
+              )}
+            </g>
+          );
+        })}
+      </svg>
       <p className="sans mt-3 text-[0.8rem] leading-relaxed text-muted">
-        3D I/O lands about <span className="num font-semibold text-dram3d">{CLAIMS.vsHBMEnergyX}×</span> below HBM: a millimetre-scale vertical path with no <Term k="phy">PHY</Term>, instead of a centimetre-scale interposer trace plus a PHY.
+        3D I/O lands about <span className="num font-semibold text-dram3d">{CLAIMS.vsHBMEnergyX}×</span> below HBM: a millimetre-scale vertical path with no <Term k="phy">PHY</Term>, instead of a centimetre-scale interposer trace plus a PHY. Open circles are per millimetre travelled.
       </p>
     </div>
   );
@@ -135,7 +174,16 @@ export function S14Conclusion() {
           <div className="step-card is-active max-w-[38rem] lg:pt-2">
             <div className="step-body">
               <p>Decoding reads the model’s weights and a growing KV cache for every token it writes, so a language model runs only as fast as its memory can deliver data, and much of its power goes into moving that data. Raptor’s answer is to put the memory directly underneath the processor.</p>
-              <p>That choice created four challenges, from fitting data into three banks to keeping a hot stack reliable, and each had a specific fix. The paper reports about <strong className="num">{HERO.bandwidthPerCardTBs} TB/s</strong> per card, with each bit moved between the dies for about <strong className="num">{STACKING.ioPJPerBit} pJ</strong> on early silicon.</p>
+              <p>That choice created {numberWord(PROBLEMS.length)} challenges, and each had a specific fix:</p>
+              <ol className="sans mt-3 border-t border-line text-[0.92rem]">
+                {PROBLEMS.map((p, i) => (
+                  <li key={p.scene} className="grid grid-cols-[1.6rem_minmax(0,1fr)] gap-x-2 border-b border-line py-2">
+                    <span className="font-serif italic text-faint">{i + 1}</span>
+                    <span><span className="text-ink">{p.short}</span><span className="text-faint"> → </span><a href={`#${p.scene}`} className="text-ink">{p.fix}</a></span>
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-4">The paper reports about <strong className="num">{HERO.bandwidthPerCardTBs} TB/s</strong> per card, with each bit moved between the dies for about <strong className="num">{STACKING.ioPJPerBit} pJ</strong> on early silicon.</p>
               <p>The comparison below, from {PRESENTATION.label}, sums up where that leaves 3D-DRAM against the other two kinds of memory.</p>
             </div>
           </div>
@@ -146,7 +194,7 @@ export function S14Conclusion() {
           <div className="fig-head">
             <span className="fig-label">Fig. 14</span>
           </div>
-          <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)] lg:gap-14">
+          <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1.1fr)] lg:gap-12">
             <div className="grid gap-5 sm:grid-cols-3 sm:gap-8">
               {COMPARISON.map((m) => <Card key={m.id} m={m} />)}
             </div>

@@ -30,13 +30,17 @@ export const COMPARISON: MemoryCard[] = [
   { id: 'dram3d', name: '3D-DRAM', kind: 'Compute stacked on memory', layout: 'Compute on DRAM, with vertical I/O', capacity: 'Medium', bandwidth: 'High', power: 'Low–Med' },
 ];
 
-/** "The energy ladder": energy to move one bit, as shown on the slide. */
+/**
+ * "The energy ladder": energy to move one bit, as shown on the slide, in pJ.
+ * `perMm` rows are per millimetre travelled, so they are drawn as open marks.
+ * The HBM4 bar runs from its 2.5 pJ I/O figure to 2.5 + 3 pJ including on-chip energy.
+ */
 export const ENERGY_LADDER = [
-  { what: 'SRAM (on-die)', energy: '~50 fJ', highlight: false },
-  { what: 'On-chip wire', energy: '~35 fJ per mm', highlight: false },
-  { what: '3D vertical I/O', energy: '0.3–0.4 pJ', highlight: true },
-  { what: 'Interposer trace', energy: '~500 fJ per mm', highlight: false },
-  { what: '2.5D HBM4 (system)', energy: '2.5 pJ + 3 pJ on chip', highlight: false },
+  { id: 'sram', what: 'SRAM (on-die)', energy: '~50 fJ', lo: 0.05, hi: 0.05, perMm: false, highlight: false },
+  { id: 'wire', what: 'On-chip wire', energy: '~35 fJ per mm', lo: 0.035, hi: 0.035, perMm: true, highlight: false },
+  { id: 'io3d', what: '3D vertical I/O', energy: '0.3–0.4 pJ', lo: 0.3, hi: 0.4, perMm: false, highlight: true },
+  { id: 'interposer', what: 'Interposer trace', energy: '~500 fJ per mm', lo: 0.5, hi: 0.5, perMm: true, highlight: false },
+  { id: 'hbm4', what: '2.5D HBM4 (system)', energy: '2.5 pJ + 3 pJ on chip', lo: 2.5, hi: 2.5 + 3, perMm: false, highlight: false },
 ] as const;
 
 export const CLAIMS = {

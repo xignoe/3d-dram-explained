@@ -54,10 +54,10 @@ export const CITATION = {
 // ---------------------------------------------------------------------------
 
 export const PROBLEMS = [
-  { short: 'Mapping data to banks', paper: 'workload-aware mapping to exploit parallelism', scene: 'stream-blocking' }, // Abstract (1)
-  { short: 'Switching energy', paper: 'power optimization without burst-based data bus inversion (DBI)', scene: 'stream-flipping' }, // Abstract (2)
-  { short: 'Faulty banks', paper: 'resilience with high bank counts', scene: 'bank-chaining' }, // Abstract (3)
-  { short: 'Heat and refresh', paper: 'thermal reliability at elevated junction temperatures', scene: 'heat' }, // Abstract (4)
+  { short: 'Mapping data to banks', paper: 'workload-aware mapping to exploit parallelism', scene: 'stream-blocking', fix: 'stream blocking' }, // Abstract (1); Sec IV-C
+  { short: 'Switching energy', paper: 'power optimization without burst-based data bus inversion (DBI)', scene: 'stream-flipping', fix: 'stream flipping' }, // Abstract (2); Sec IV-D
+  { short: 'Faulty banks', paper: 'resilience with high bank counts', scene: 'bank-chaining', fix: 'bank chaining with spare banks' }, // Abstract (3); Sec IV-E(3A)
+  { short: 'Heat and refresh', paper: 'thermal reliability at elevated junction temperatures', scene: 'heat', fix: 'temperature-aware refresh and interleaved ECC' }, // Abstract (4); Sec IV-E(3B, 3C)
 ] as const;
 
 // ---------------------------------------------------------------------------
