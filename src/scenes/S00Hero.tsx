@@ -66,19 +66,13 @@ export function Hero() {
   return (
     <header ref={ref} className="px-4 sm:px-6 lg:px-12">
       <div className="mx-auto max-w-[1320px]">
-        <div className="flex items-baseline justify-between border-b border-ink py-3">
-          <span className="text-lg italic">Raptor, explained</span>
-          <span className="sans hidden text-xs text-muted sm:inline">A reader’s guide to an ISCA {CITATION.year} paper</span>
-        </div>
-
-        <div className="grid gap-10 pb-16 pt-10 lg:min-h-[86svh] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-center lg:gap-16 lg:pt-6">
+        <div className="grid gap-10 pb-16 pt-12 lg:min-h-svh lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-center lg:gap-16 lg:py-16">
           <div>
-            <p className="kicker">The memory wall</p>
-            <h1 className="mt-4 max-w-[15ch] text-[2.75rem] font-medium leading-[1.02] tracking-[-0.022em] sm:text-6xl lg:text-[5.1rem]">
+            <h1 className="max-w-[15ch] text-[2.75rem] font-medium leading-[1.02] tracking-[-0.022em] sm:text-6xl lg:text-[5.1rem]">
               Running a language model is largely a memory problem.
             </h1>
             <p className="mt-6 max-w-[36ch] text-[1.35rem] italic leading-snug text-muted">
-              Raptor, a chip from d-Matrix, puts its memory directly underneath its processor. This is an independent guide to why that helps, and to how its designers addressed the {numberWord(PROBLEMS.length)} engineering challenges it created.
+              Raptor, a chip from d-Matrix, puts its memory directly underneath its processor, an arrangement called <Term k="dram3d">3D-DRAM</Term>. This is an independent guide to why that helps, and to how its designers addressed the {numberWord(PROBLEMS.length)} engineering challenges it created.
             </p>
             <p className="sans mt-6 max-w-[52ch] text-sm leading-relaxed text-muted">
               Based on “<a href={`https://doi.org/${CITATION.doi}`}>{CITATION.title}</a>,” by {CITATION.authors[0]} and {numberWord(CITATION.authors.length - 1)} colleagues at {CITATION.affiliations[0]} (Nair is also at the {CITATION.affiliations[1]}), presented at ISCA {CITATION.year}. The paper reports about{' '}
