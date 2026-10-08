@@ -123,11 +123,12 @@ function Dram3d() {
     io.setAttribute('position', new THREE.Float32BufferAttribute(line, 3));
     return { io, pos, phase };
   }, [top]);
-  const layers = useGlowMaterials(LAYERS, P.dramTint, P.dram);
+  // A lighter green than the outline, so the glow brightens the layers rather than just deepening them.
+  const layers = useGlowMaterials(LAYERS, P.dramTint, P.dramMid);
   const dots = useRef<THREE.Points>(null);
   useFrame(({ clock }) => {
     const p = clock.elapsedTime * 0.35;
-    layers.forEach((m, k) => { m.emissiveIntensity = 0.3 * pulse(p - k * 0.08); });
+    layers.forEach((m, k) => { m.emissiveIntensity = 0.55 * pulse(p - k * 0.08); });
     if (!dots.current) return;
     const attr = dots.current.geometry.attributes.position as THREE.BufferAttribute;
     const t = clock.elapsedTime * SPEED;
