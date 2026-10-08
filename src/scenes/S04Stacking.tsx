@@ -182,7 +182,7 @@ export function S04Stacking() {
         <p key="b">Raptor stacks the two instead. Its logic die, made on TSMC’s {STACKING.logicProcess.replace('TSMC ', '')} process, is bonded face to face with a DRAM die, so the memory sits directly beneath the circuits that use it.</p>,
         <>
           <p key="c">The connection between memory and logic now covers the whole area of the die instead of a strip along one edge. A dense array of microscopic solder bumps, called <Term k="ubump">µbumps</Term>, joins the two dies, and each bump carries one bit per clock cycle.</p>
-          <Chef>The pantry is now directly below the kitchen, and the trips are short.</Chef>
+          <Chef>The ingredients now sit in a fridge right under the countertop. Every station has its own drawer, so the chef no longer walks to the pantry.</Chef>
         </>,
         <>
           <p key="d">The bumps are <strong className="num">{STACKING.microbumpPitchUm} µm</strong> apart. Because each connection is so short, moving a bit costs about <strong className="num">{STACKING.ioPJPerBit} pJ</strong>, which the paper puts at roughly {STACKING.vsHBM3EnergyX}× less than reported figures for HBM3.</p>

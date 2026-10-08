@@ -24,7 +24,7 @@ Every number below is a key in `src/data/paper.ts`. Labels used:
 | **Reduced motion** | When `prefers-reduced-motion` is set, ScrollTrigger scrubbing is disabled and each step renders its end state with a 0 ms crossfade. Particle and rotation loops stop. Interactive toys still work but snap instead of animating. |
 | **3D** | Scenes 0, 4 and 5 use react-three-fiber with drei, loaded through `React.lazy`. While loading, if WebGL is unavailable, below 768px wide, or under reduced motion, the scene shows an equivalent hand-built SVG. That fallback is real content, not a spinner, so the page is fully readable without 3D. Canvases pause rendering (`frameloop="demand"`) when offscreen. |
 | **Accessibility** | Every visual has an `aria-describedby` text description that states what it shows and its key numbers. Interactive controls are native inputs or buttons with labels. Live readouts use `aria-live="polite"`. Contrast meets AA. |
-| **Metaphor** | The chef appears lightly, as a small pictogram plus one line in Scenes 0, 1, 3, 4 and 14 only. The chef cooks instantly but must fetch every ingredient. **SRAM** is a tiny countertop. **HBM** is a big pantry down the hall with one door. **3D-DRAM** is a pantry directly under the kitchen with hundreds of trapdoors. |
+| **Metaphor** | The chef appears lightly, as a small pictogram plus one line in Scenes 0, 1, 3, 4 and 14 only. The chef cooks instantly but must fetch every ingredient. **SRAM** is a tiny countertop. **HBM** is a big pantry down the hall with one door. **3D-DRAM** is a fridge built in under the countertop, with a drawer at every workstation (revised from "a pantry under the kitchen"). |
 | **Originality** | All diagrams are original compositions, not redraws of the paper's figures. All prose is fresh plain language, with at most a handful of short attributed quotes. |
 | **Glossary** | Terms such as KV cache, token, bank, channel, flit/chunk, refresh and µbump get tap/hover definitions. The prose says "chunk" and the glossary maps it to the paper's "flit". |
 
@@ -67,7 +67,7 @@ Every number below is a key in `src/data/paper.ts`. Labels used:
 ## Scene 3 · Three kinds of pantry *(2D chart, design + derived)*
 - **Idea:** Today's memory forces a trade: fast-but-tiny or big-but-slow. 3D-DRAM sits in between, and is far "faster for its size" than HBM.
 - **Visual:**
-  - Part A: an original log–log scatter of bandwidth per card vs capacity per card with three labeled dots in the memory colors. Each dot gets its chef label: countertop, pantry down the hall, pantry under the kitchen.
+  - Part A: an original log–log scatter of bandwidth per card vs capacity per card with three labeled dots in the memory colors. Each dot gets its chef label: countertop, pantry down the hall, fridge under the counter.
   - Part B: a horizontal bar chart (log scale) of **bandwidth ÷ capacity**, "how many times per second the card could read its entire memory": SRAM 37,500/s, 3D-DRAM 3,125/s, HBM ~94/s.
 - **Scroll:**
   - Step 1: the SRAM dot.
@@ -86,7 +86,7 @@ Every number below is a key in `src/data/paper.ts`. Labels used:
 - **Scroll:**
   - Step 1: layout A, the trickle, with chef line "one door to the pantry".
   - Step 2: the camera swings and the dies stack.
-  - Step 3: the rain, with chef line "hundreds of trapdoors".
+  - Step 3: the rain, with chef line "a drawer at every station".
   - Step 4: a callout stack:
     - "36 µm between connectors"
     - "0.45 pJ per bit moved" (Measured badge)

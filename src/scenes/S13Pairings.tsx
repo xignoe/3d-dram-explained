@@ -111,7 +111,7 @@ export function S13Pairings() {
         <p key="0"><strong>Attention–FFN disaggregation.</strong> In a mixture-of-experts model, the attention layers mostly need room for the KV cache, which a GPU’s large HBM provides, while the expert layers mostly need to read their weights quickly, which is where Raptor is strongest. The paper describes running attention on the GPU and the experts on Raptor, passing activations between them at every layer.</p>,
         <>
           <p key="1"><strong>Speculative decoding.</strong> A small draft model proposes the next K tokens one at a time, which is limited by memory bandwidth and suits Raptor. A larger model then checks all K proposals in a single parallel pass, which is limited by compute and suits a GPU. The paper cites a production deployment on d-Matrix’s earlier chip, Corsair, which reported sizable end-to-end speedups with exactly this arrangement.</p>
-          <Chef>To close the kitchen picture: Raptor builds the pantry directly under the stove, so the chef spends far less time fetching ingredients. It holds less than the big pantry down the hall, so the best kitchen may use both: the big pantry for whatever takes up the most room, and the one underfoot for whatever has to arrive fastest.</Chef>
+          <Chef>To close the kitchen picture: Raptor puts a fridge right under the countertop, so the chef spends far less time fetching ingredients. It holds less than the big pantry down the hall, so the best kitchen may use both: the pantry for whatever takes up the most room, and the fridge under the counter for whatever has to arrive fastest.</Chef>
         </>,
       ]}
       description={(s) => s.step === 0

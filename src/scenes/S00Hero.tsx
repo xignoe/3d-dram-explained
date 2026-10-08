@@ -85,7 +85,7 @@ export function Hero() {
               <span className="num text-ink">{HERO.bandwidthPerCardTBs} TB/s</span> of memory <Term k="bandwidth">bandwidth</Term> per card.
             </p>
             <div className="max-w-[40ch]">
-              <Chef>A picture worth keeping in mind: a chef who can cook any dish instantly but has to fetch every ingredient from a pantry. How quickly the kitchen works depends almost entirely on the pantry.</Chef>
+              <Chef>A picture worth keeping in mind: a chef who can cook any dish instantly but has to fetch every ingredient first. How quickly the kitchen works depends almost entirely on where the ingredients are kept.</Chef>
             </div>
             <div className="sans mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted">
               <span>How to read the figures:</span>

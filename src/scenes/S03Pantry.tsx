@@ -8,7 +8,7 @@ import { useDesktop } from '../lib/hooks';
 
 const H = 420, M = { l: 64, r: 24, t: 28, b: 56 };
 const ORDER: MemoryId[] = ['sram', 'hbm', 'dram3d'];
-const CHEF: Record<MemoryId, string> = { sram: 'the countertop', hbm: 'the pantry down the hall', dram3d: 'the pantry under the kitchen' };
+const CHEF: Record<MemoryId, string> = { sram: 'the countertop', hbm: 'the pantry down the hall', dram3d: 'the fridge under the counter' };
 
 /**
  * Each memory drawn as a store attached to the same processor. Box area is
@@ -47,7 +47,19 @@ function Pantries({ step, W }: { step: number; W: number }) {
               fill={MEM_COLOR[id]} fillOpacity={0.35} stroke={MEM_COLOR[id]} strokeWidth={1} />
             {/* the store: area encodes capacity */}
             <rect x={cx - box / 2} y={top} width={box} height={box} fill={P.paper} stroke={MEM_COLOR[id]} strokeWidth={1.6} />
-            {(() => {
+            {id === 'dram3d' ? (() => {
+              // An under-counter fridge: a stack of drawers, each with a handle.
+              const drawers = 3;
+              return Array.from({ length: drawers }, (_, j) => {
+                const y0 = top + (j * box) / drawers;
+                return (
+                  <g key={j}>
+                    {j > 0 && <line x1={cx - box / 2} x2={cx + box / 2} y1={y0} y2={y0} stroke={MEM_COLOR[id]} strokeOpacity={0.6} />}
+                    <line x1={cx - box / 6} x2={cx + box / 6} y1={y0 + box / drawers / 3} y2={y0 + box / drawers / 3} stroke={MEM_COLOR[id]} strokeWidth={2} strokeLinecap="round" />
+                  </g>
+                );
+              });
+            })() : (() => {
               const shelves = Math.max(1, Math.round(box / 14));
               return Array.from({ length: shelves }, (_, j) => (
                 <line key={j} x1={cx - box / 2 + 3} x2={cx + box / 2 - 3} y1={top + ((j + 1) * box) / (shelves + 1)} y2={top + ((j + 1) * box) / (shelves + 1)} stroke={MEM_COLOR[id]} strokeOpacity={0.35} />
@@ -117,7 +129,7 @@ export function S03Pantry() {
         </>,
         <>
           <p key="c"><strong style={{ color: MEM_COLOR.dram3d }}>Raptor’s 3D-DRAM</strong> sits directly underneath the processor and provides <strong className="num">{dram3d.bandwidthTBs} TB/s</strong> and <strong className="num">{dram3d.capacityGB} GB</strong> per card. It is neither the fastest nor the largest of the three, but it comes much closer to offering both.</p>
-          <Chef>3D-DRAM is a pantry built directly beneath the kitchen, with a trapdoor under every workstation.</Chef>
+          <Chef>3D-DRAM is a fridge built in under the countertop, with a drawer at every workstation. It holds more than the countertop and less than the pantry, and everything in it is one reach away.</Chef>
         </>,
         <>
           <p key="d">One way to compare them is to divide <Term k="bandwidth">bandwidth</Term> by <Term k="capacity">capacity</Term>. The result is the number of times per second a card could read through all of its memory, which is roughly the kind of work that decoding asks for.</p>
