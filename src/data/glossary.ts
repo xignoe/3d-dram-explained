@@ -9,6 +9,8 @@ export const GLOSSARY = {
   chunk: 'The paper calls it a “flit”: the fixed-size piece of data delivered to a compute engine in one go.',
   refresh: 'DRAM stores bits as tiny electric charges that leak away. Refresh re-writes every row before it fades.',
   dram3d: 'Memory stacked in three dimensions: here, a DRAM die bonded face to face with the processor die, so the two connect across their whole surface instead of along one edge.',
+  phy: 'The physical-layer circuitry that drives signals off one chip and receives them on another. It takes area and energy at both ends.',
+  beachfront: 'The edge of a chip where connections to other chips can be placed. Its length limits how many connections fit.',
   ubump: 'Microscopic solder bumps that connect two chips stacked face to face.',
   dbi: 'Data bus inversion: sending data inverted (0s↔1s) when that means fewer wires switch, plus a flag saying so.',
   mcm: 'Multi-chip module: one package holding several chiplets.',

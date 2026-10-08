@@ -236,6 +236,11 @@ Three beats, each with its own visual and badge.
 ## Scene 14 · Read this critically *(removed)*
 Cut at the author's request; the page now ends with Scene 13 and the footer.
 
+## Scene 14 · Conclusion *(static)*
+- **Idea:** The case for 3D-DRAM, summed up.
+- **Content:** A three-sentence recap; Fig. 14, adapted from a d-Matrix presentation slide (an SRAM / HBM / 3D-DRAM comparison with schematics and Capacity/Bandwidth/Power ratings, plus an energy-ladder table); a summary band; and the closing "In the kitchen" note.
+- **Numbers:** `src/data/dmatrix.ts` (credited to the presentation), next to the paper's measured pJ/bit.
+
 ## Footer
 Full citation from `CITATION`: title, all 12 authors, venue, year, pages, DOI 10.1109/ISCA66397.2026.00183, and a link to the PDF. Plus: "An independent explainer. Not affiliated with or endorsed by d-Matrix." and "All illustrations are original; numbers are from the paper unless labeled *derived*."
 

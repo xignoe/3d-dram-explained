@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Scene, type SceneState } from '../components/Scene';
 import { useTicker } from '../lib/hooks';
-import { Chef } from '../components/ui';
 import { PAIRINGS } from '../data/paper';
 import { TOY } from '../data/illustrative';
 import { P } from '../lib/palette';
@@ -127,10 +126,7 @@ export function S13Pairings() {
       title="Pairing Raptor with a GPU"
       steps={[
         <p key="0"><strong>Attention–FFN disaggregation.</strong> In a mixture-of-experts model, the attention layers mostly need room for the KV cache, which a GPU’s large HBM provides, while the expert layers mostly need to read their weights quickly, which is where Raptor is strongest. The paper describes running attention on the GPU and the experts on Raptor, passing activations between them at every layer.</p>,
-        <>
-          <p key="1"><strong>Speculative decoding.</strong> A small draft model proposes the next K tokens one at a time, which is limited by memory bandwidth and suits Raptor. A larger model then checks all K proposals in a single parallel pass, which is limited by compute and suits a GPU. The paper cites a production deployment on d-Matrix’s earlier chip, Corsair, which reported sizable end-to-end speedups with exactly this arrangement.</p>
-          <Chef>To close the kitchen picture: Raptor puts a fridge right under the countertop, so the chef spends far less time fetching ingredients. It holds less than the big pantry down the hall, so the best kitchen may use both: the pantry for whatever takes up the most room, and the fridge under the counter for whatever has to arrive fastest.</Chef>
-        </>,
+        <p key="1"><strong>Speculative decoding.</strong> A small draft model proposes the next K tokens one at a time, which is limited by memory bandwidth and suits Raptor. A larger model then checks all K proposals in a single parallel pass, which is limited by compute and suits a GPU. The paper cites a production deployment on d-Matrix’s earlier chip, Corsair, which reported sizable end-to-end speedups with exactly this arrangement.</p>,
       ]}
       description={(s) => s.step === 0
         ? 'Swim-lane diagram: the GPU runs attention, sends activations to Raptor, which runs the expert layers and returns results for the next layer.'

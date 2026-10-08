@@ -51,6 +51,9 @@ A separate pass compared every explanation (not just every number) against the p
   - The footer disclaims affiliation with d-Matrix, the authors and UBC.
 - **Fig. 4.** Redrawn as two package cross-sections, using the layer names of the paper's Fig. 1b and Sec IV-B: logic die, µbumps, DRAM die, TSVs, C4 bumps, CoWoS interposer and organic substrate.
 
+## Conclusion figures from a d-Matrix presentation
+The conclusion (Fig. 14) reproduces a d-Matrix presentation slide, "Why 3D-DRAM?". Its qualitative ratings, the energy ladder (~50 fJ, ~35 fJ/mm, 0.3–0.4 pJ, ~500 fJ/mm, 2.5 pJ + 3 pJ), "≤4 layers vs. 12–16" and "~10× below HBM" are not in the paper. They live in `src/data/dmatrix.ts`, and the caption credits the presentation. The figure sets them beside the paper's measured 0.455 and 0.376 pJ/bit. A note explains that the presentation's ~10× compares against an HBM4 system figure that includes on-chip energy, while the paper's ~6× is against HBM3 I/O energy alone.
+
 ## Illustration-only numbers visible on screen
 - The bit-flip toy's counters and its 64-wire (32 on phones) strip.
 - The bank-chaining demo's scripted fault positions.
