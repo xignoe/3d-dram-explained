@@ -115,13 +115,14 @@ function Visual({ step }: SceneState) {
           </select>
         </label>
       </div>
-      <div className="grid min-h-0 flex-1 grid-cols-3 gap-3">
+      {/* Counts size to this row, not the viewport, so a four-digit count still fits its column. */}
+      <div className="@container grid min-h-0 flex-1 grid-cols-3 gap-3">
         {MEMS.map((m) => {
           const n = cardCount(model, m);
           const stated = model === KIMI && m === 'sram' && n === KIMI_SRAM_CARDS_STATED;
           return (
             <div key={m} className="flex min-h-0 flex-col" title={describe(TABLE2[model][m])}>
-              <div className="num font-serif text-4xl font-medium leading-none lg:text-6xl" style={{ color: MEM_COLOR[m] }}>{fmt(n)}</div>
+              <div className="num font-serif text-3xl font-medium leading-none @min-[20rem]:text-4xl @min-[25.5rem]:text-5xl @min-[31.5rem]:text-6xl" style={{ color: MEM_COLOR[m] }}>{fmt(n)}</div>
               <div className="sans mt-1 text-xs text-muted">{MEMORY[m].label} card{n === 1 ? '' : 's'}{stated && <span className="ml-1 italic">(stated in paper)</span>}</div>
               <div className="min-h-0 flex-1 py-2"><CardGrid n={n} color={MEM_COLOR[m]} /></div>
               <div className="sans text-[0.68rem] leading-snug text-faint">{describe(TABLE2[model][m])}</div>
