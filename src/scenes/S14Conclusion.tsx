@@ -1,13 +1,16 @@
-import type { ReactElement } from 'react';
+import { lazy, type ReactElement } from 'react';
 import { scaleLog } from 'd3-scale';
 import { Chef, MEM_COLOR, Term } from '../components/ui';
+import { Gate3D } from '../components/Gate3D';
 import { HERO, PROBLEMS, STACKING, STREAM_FLIPPING as SF } from '../data/paper';
 import { numberWord } from '../lib/fmt';
 import { useDesktop } from '../lib/hooks';
 import { CLAIMS, COMPARISON, ENERGY_LADDER, LEVEL_FILL, PRESENTATION, type Level, type MemoryCard } from '../data/dmatrix';
 import { P } from '../lib/palette';
 
-/* ---------- small schematics, one per memory (not to scale) ---------- */
+const MemoryMini = lazy(() => import('../three/MemoryMini'));
+
+/* ---------- small schematics, one per memory (not to scale); the 3D models stand in on desktop ---------- */
 
 function SramTiles() {
   return (
@@ -82,7 +85,9 @@ function Card({ m }: { m: MemoryCard }) {
       <div>
         <div className="font-serif text-2xl font-medium leading-none" style={{ color }}>{m.name}</div>
         <div className="sans mt-1.5 text-[0.78rem] leading-snug text-muted">{m.kind}</div>
-        <div className="mt-3 sm:mt-4"><Schematic /></div>
+        <div className="relative mt-3 aspect-[120/84] sm:mt-4">
+          <Gate3D fallback={<Schematic />}><MemoryMini kind={m.id} /></Gate3D>
+        </div>
         <div className="sans mt-2 text-[0.72rem] leading-snug text-faint sm:min-h-[2.6em]">{m.layout}</div>
       </div>
       <div className="sans space-y-2.5 sm:mt-5">

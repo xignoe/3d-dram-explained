@@ -11,9 +11,10 @@ const MAX_FRAMES = 90; // give up and fall back after this many frames with noth
  * Some browser/GPU combinations create a WebGL context but draw nothing; in that
  * case (or if the context is lost) it reports a failure so the SVG stays up.
  * Needs the renderer's `preserveDrawingBuffer` so the last frame can be read.
+ * On a `frameloop="demand"` canvas it keeps requesting frames until it decides.
  */
 export function RenderProbe() {
-  const { gl } = useThree();
+  const { gl, invalidate } = useThree();
   const { ready, fail } = useGateSignals();
   const frames = useRef(0);
   const done = useRef(false);
@@ -28,6 +29,7 @@ export function RenderProbe() {
   useFrame(() => {
     if (done.current) return;
     frames.current += 1;
+    invalidate();
     if (frames.current < 3) return;
     const ctx = gl.getContext();
     const w = ctx.drawingBufferWidth, h = ctx.drawingBufferHeight;
