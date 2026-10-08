@@ -58,9 +58,10 @@ export function Term({ k, children }: { k: GlossaryKey; children: ReactNode }) {
 export function BigStat({ value, unit, label, color = 'var(--color-ink)', size = 'lg' }: {
   value: ReactNode; unit?: ReactNode; label: ReactNode; color?: string; size?: 'md' | 'lg' | 'xl';
 }) {
-  const sz = size === 'xl' ? 'text-6xl lg:text-8xl' : size === 'lg' ? 'text-4xl lg:text-7xl' : 'text-3xl lg:text-5xl';
+  // lg sizes to its own box, not the viewport, so a stat in a narrow figure column never overflows.
+  const sz = size === 'xl' ? 'text-6xl lg:text-8xl' : size === 'lg' ? 'text-4xl @min-[10rem]:text-5xl @min-[12rem]:text-6xl @min-[14rem]:text-7xl' : 'text-3xl lg:text-5xl';
   return (
-    <div>
+    <div className={size === 'lg' ? '@container' : undefined}>
       <div className={`num font-serif font-medium leading-[0.95] tracking-tight ${sz}`} style={{ color }}>
         {value}
         {unit && <span className="ml-1.5 text-[0.4em] font-normal text-muted">{unit}</span>}
