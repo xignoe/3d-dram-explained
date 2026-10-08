@@ -118,6 +118,13 @@ function useCamera(level: number, vw: number, vh: number, reduced: boolean) {
 /** 0 → 1 as the camera scale passes from `a` to `b` (level of detail). */
 const lod = (s: number, a: number, b: number) => Math.min(1, Math.max(0, (s - a) / (b - a)));
 
+/** A detail layer that fades in with zoom. Fully hidden layers are not rendered at all:
+ *  their sub-pixel, non-scaling strokes can otherwise paint as stray lines across the figure. */
+function Lod({ s, a, b, children }: { s: number; a: number; b: number; children: ReactNode }) {
+  const o = lod(s, a, b);
+  return o > 0 ? <g opacity={o}>{children}</g> : null;
+}
+
 const ns = { vectorEffect: 'non-scaling-stroke' as const };
 
 function World({ s }: { s: number }) {
@@ -149,19 +156,19 @@ function World({ s }: { s: number }) {
                   {/* DRAM die peeking out beneath the logic die */}
                   <rect x={r.x + 2.2} y={r.y + 2.2} width={r.w} height={r.h} fill={P.dramMid} stroke={P.ink} strokeWidth={0.8} {...ns} />
                   <rect {...rp(r)} fill={P.logic} stroke={P.ink} strokeWidth={1} {...ns} />
-                  <g opacity={lod(s, 1.4, 2.6)}>
+                  <Lod s={s} a={1.4} b={2.6}>
                     {grid(H.chiplet.gangs).map((g) => {
                       const gr = gangR(r, g);
                       return (
                         <g key={g}>
                           <rect {...rp(gr)} fill="none" stroke={P.ink2} strokeWidth={0.8} {...ns} />
-                          <g opacity={lod(s, 4, 7)}>
+                          <Lod s={s} a={4} b={7}>
                             {grid(H.gang.slices).map((k) => <rect key={k} {...rp(sliceR(gr, k))} fill={P.logic} stroke={P.ink3} strokeWidth={0.7} {...ns} />)}
-                          </g>
+                          </Lod>
                         </g>
                       );
                     })}
-                  </g>
+                  </Lod>
                 </g>
               );
             })}
@@ -170,7 +177,7 @@ function World({ s }: { s: number }) {
       })}
 
       {/* detail inside the first slice */}
-      <g opacity={lod(s, 12, 22)}>
+      <Lod s={s} a={12} b={22}>
         <rect {...rp(S0)} fill={P.paper} stroke={P.ink} strokeWidth={1.2} {...ns} />
         {grid(H.slice.teRows * H.slice.teCols).map((i) => {
           const gap = parts.te.w * 0.05;
@@ -183,10 +190,10 @@ function World({ s }: { s: number }) {
         {grid(H.slice.channels).map((ch) => grid(BANK_BUDGET.banksPerChannel).map((b) => (
           <rect key={`${ch}-${b}`} {...rp(parts.bank(ch, b))} fill={ch === 0 && b === 0 ? P.dram : P.dramMid} stroke={P.ink} strokeWidth={0.5} {...ns} />
         )))}
-      </g>
+      </Lod>
 
       {/* inside one bank: rows x columns, one column highlighted, row buffer at the foot */}
-      <g opacity={lod(s, 120, 240)}>
+      <Lod s={s} a={120} b={240}>
         <rect {...rp(B0)} fill={P.paper} stroke={P.ink} strokeWidth={1.4} {...ns} />
         {grid(bankRows + 1).map((r) => (
           <line key={`r${r}`} x1={B0.x} x2={B0.x + B0.w} y1={B0.y + (r * B0.h * 0.9) / bankRows} y2={B0.y + (r * B0.h * 0.9) / bankRows} stroke={P.rule} strokeWidth={0.6} {...ns} />
@@ -196,7 +203,7 @@ function World({ s }: { s: number }) {
         ))}
         <rect x={B0.x + (TOY.bankColHighlighted * B0.w) / bankCols} y={B0.y} width={B0.w / bankCols} height={B0.h * 0.9} fill={P.dram} fillOpacity={0.35} stroke={P.dram} strokeWidth={1.2} {...ns} />
         <rect x={B0.x} y={B0.y + B0.h * 0.92} width={B0.w} height={B0.h * 0.08} fill={P.sramTint} stroke={P.ink} strokeWidth={0.8} {...ns} />
-      </g>
+      </Lod>
     </g>
   );
 }
