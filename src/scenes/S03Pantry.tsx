@@ -96,13 +96,13 @@ function Bars({ W }: { W: number }) {
         const yy = TOP + i * rowH;
         return (
           <g key={id}>
-            <text x={M.l - 40} y={yy + 26} fontSize="17" fontWeight={500} style={{ fontFamily: 'var(--font-serif)' }} fill={MEM_COLOR[id]}>
+            <text stroke={P.paper} strokeWidth={5} strokeLinejoin="round" paintOrder="stroke" x={M.l - 40} y={yy + 26} fontSize="17" fontWeight={500} style={{ fontFamily: 'var(--font-serif)' }} fill={MEM_COLOR[id]}>
               {MEMORY[id].label}
               <tspan dx={10} fontSize="13" fontWeight={400} className="svg-num" style={{ fontFamily: 'var(--font-sans)' }} fill={P.ink}>{fmt(v, 0)} times a second</tspan>
             </text>
             <line x1={x(10)} x2={x(100000)} y1={yy + 50} y2={yy + 50} stroke={P.rule} />
             <circle cx={x(v)} cy={yy + 50} r={7} fill={MEM_COLOR[id]} />
-            {id === 'dram3d' && <text x={x(v) + 14} y={yy + 54} fontSize="12" fontWeight={600} className="svg-num" fill={MEM_COLOR.dram3d}>{vsHBM}× HBM</text>}
+            {id === 'dram3d' && <text stroke={P.paper} strokeWidth={5} strokeLinejoin="round" paintOrder="stroke" x={x(v) + 14} y={yy + 54} fontSize="12" fontWeight={600} className="svg-num" fill={MEM_COLOR.dram3d}>{vsHBM}× HBM</text>}
             <line x1={M.l - 40} x2={W - M.r} y1={yy + rowH} y2={yy + rowH} stroke={P.rule} strokeOpacity={0.6} />
           </g>
         );
