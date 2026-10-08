@@ -451,14 +451,6 @@ export const NETWORK_SENSITIVITY = {
   hbmInsensitive: true, // Sec VIII-C ("HBM ... is largely insensitive")
 } as const;
 
-/** Inconsistency footnote inputs for Scene 11. */
-export const LLAMA_FOOTNOTE = {
-  dram3dCards: 1, // Table II (Llama-3.1 70B, 3D-DRAM: 1|1|1|0|1, U, 32)
-  dram3dMemGB: 32, // Table II
-  weightsGB: 70, // Sec I ("about 70GB at 8-bit precision")
-  statedTP: 4, // Sec VI-D ("TP = 4 for Llama-70B vs. TP = 8 for SRAM")
-  statedSramTP: 8, // Sec VI-D
-} as const;
 
 // ---------------------------------------------------------------------------
 // Scene 12 · Results (Abstract, Sec I, Sec VIII) — all MODELED

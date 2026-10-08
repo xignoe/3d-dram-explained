@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Scene, type SceneState } from '../components/Scene';
-import { MEM_COLOR, Note, Term } from '../components/ui';
+import { MEM_COLOR, Term } from '../components/ui';
 import {
-  TABLE2, MEMORY, cardCount, HIERARCHY as H, D2D_GBPS_PER_LANE, KIMI_SRAM_CARDS_STATED, INTERCONNECT, NETWORK_SENSITIVITY as NS, LLAMA_FOOTNOTE as LF,
+  TABLE2, MEMORY, cardCount, HIERARCHY as H, D2D_GBPS_PER_LANE, KIMI_SRAM_CARDS_STATED, INTERCONNECT, NETWORK_SENSITIVITY as NS,
   type DeployCell, type MemoryId,
 } from '../data/paper';
 import { fmt } from '../lib/fmt';
@@ -147,10 +147,7 @@ export function S11Cards() {
         <p key="1">For Kimi K2, which has a trillion parameters, the gap is much wider: <strong className="num text-sram-ink">{ki('sram')}</strong> SRAM cards (a figure the paper gives directly), compared with <strong className="num" style={{ color: MEM_COLOR.dram3d }}>{ki('dram3d')}</strong> Raptor cards and <strong className="num" style={{ color: MEM_COLOR.hbm }}>{ki('hbm')}</strong> HBM cards. The menu in the figure lists the other models.</p>,
         <p key="2">HBM needs even fewer cards, but each one reads memory at {MEMORY.hbm.bandwidthTBs} TB/s, compared with {MEMORY.dram3d.bandwidthTBs} TB/s for Raptor. Capacity determines how many cards a model needs, and bandwidth determines how quickly each of them works.</p>,
         <p key="3">The number of cards matters because the cards working on one model constantly exchange partial results, in group operations called <Term k="collective">collectives</Term>. Raptor’s connections form a hierarchy: an on-chip network inside each chiplet, die-to-die links inside each module, and PCIe Gen 7 or Ethernet between modules and cards.</p>,
-        <>
-          <p key="4">With fewer cards, each collective involves fewer participants and less traffic has to cross the slowest links, so Raptor depends less on the network than the SRAM design does. HBM, split across even fewer cards, is the least sensitive of the three. Raptor sits in between, and like SRAM it slows down sharply when network bandwidth is very low.</p>
-          <Note>Table II lists Llama-3.1 70B on a single 3D-DRAM card with {LF.dram3dMemGB} GB in total. That seems inconsistent with the roughly {LF.weightsGB} GB of 8-bit weights described in Sec I, and with the mention of TP = {LF.statedTP} on 3D-DRAM in Sec VI-D. We may be misreading the table, so we show it as printed.</Note>
-        </>,
+        <p key="4">With fewer cards, each collective involves fewer participants and less traffic has to cross the slowest links, so Raptor depends less on the network than the SRAM design does. HBM, split across even fewer cards, is the least sensitive of the three. Raptor sits in between, and like SRAM it slows down sharply when network bandwidth is very low.</p>,
       ]}
       description={(s) => s.step >= 3
         ? `Nested boxes showing the interconnect hierarchy: ${INTERCONNECT.map((l) => `${l.level}, ${l.link}`).join('; ')}.`
