@@ -95,7 +95,7 @@ function Card({ m }: { m: MemoryCard }) {
 }
 
 // The presentation's rungs, with the paper's own measurement in place of its 3D vertical I/O estimate.
-const MEASURED = { id: 'paper', what: 'Raptor, measured', energy: `${SF.afterPJPerBit}–${SF.beforePJPerBit} pJ`, lo: SF.afterPJPerBit, hi: SF.beforePJPerBit, perMm: false, highlight: true, measured: true };
+const MEASURED = { id: 'paper', what: 'Raptor 3D-DRAM', energy: `${SF.afterPJPerBit}–${SF.beforePJPerBit} pJ`, lo: SF.afterPJPerBit, hi: SF.beforePJPerBit, perMm: false, highlight: true, measured: true };
 const LADDER = ENERGY_LADDER.map((r) => (r.id === 'io3d' ? MEASURED : { ...r, measured: false }));
 
 /** The energy ladder drawn as a log-scale ladder, with the paper's own measurement on the same axis. */
@@ -122,15 +122,15 @@ function EnergyLadder() {
         <line x1={0} x2={W} y1={TOP - 6} y2={TOP - 6} stroke={P.ink} strokeWidth={1.2} />
         {LADDER.map((r, i) => {
           const y = TOP + i * ROW + ROW / 2;
-          const c = r.measured ? P.ink : tone[r.id];
+          const c = r.measured ? P.dram : tone[r.id];
           return (
             <g key={r.id}>
               {r.highlight && <rect x={0} y={y - ROW / 2 + 1} width={W} height={ROW - 2} fill={P.dramTint} fillOpacity={0.35} />}
               <line x1={0} x2={W} y1={y + ROW / 2} y2={y + ROW / 2} stroke={P.rule} strokeOpacity={0.6} />
               <text x={4} y={y - 2} fontSize="13" fontWeight={r.highlight || r.measured ? 600 : 400} fill={r.highlight ? P.dram : P.ink}>{r.what}</text>
-              <text x={4} y={y + 13} fontSize="11.5" className="svg-num" fill={P.ink2}>{r.energy}{r.measured ? '  ■ paper' : ''}</text>
+              <text x={4} y={y + 13} fontSize="11.5" className="svg-num" fill={P.ink2}>{r.energy}</text>
               {r.measured ? (
-                [r.lo, r.hi].map((v) => <rect key={v} x={x(v) - 4} y={y - 4} width={8} height={8} fill={P.ink} />)
+                [r.lo, r.hi].map((v) => <rect key={v} x={x(v) - 4} y={y - 4} width={8} height={8} fill={c} />)
               ) : r.id === 'hbm4' ? (
                 <g>
                   <rect x={x(r.lo)} y={y - 3.5} width={x(r.hi) - x(r.lo)} height={7} fill={c} fillOpacity={0.3} />
