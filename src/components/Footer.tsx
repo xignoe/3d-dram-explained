@@ -21,7 +21,7 @@ export function Footer() {
             <li><Badge kind="modeled" />: from the paper’s models</li>
             <li><Badge kind="derived" />: arithmetic we did on the paper’s numbers</li>
           </ul>
-          <p className="mt-4">Set in Newsreader and IBM Plex Sans.</p>
+          <p className="mt-4">Written and designed by Kevin Quimbo. Set in Newsreader and IBM Plex Sans.</p>
         </div>
       </div>
     </footer>
