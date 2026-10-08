@@ -10,59 +10,39 @@ export type MiniKind = 'sram' | 'hbm' | 'dram3d';
 
 /* Small models for Fig. 14, in the materials of Fig. 0 and Fig. 4. Not to scale. */
 
-/**
- * Dots of data moving along a path, like the motes in Fig. 0. `place` writes
- * mote i at progress u (0–1) into `out`; r is a fixed random number per mote.
- */
-function Motes({ count, color, speed, place }: { count: number; color: string; speed: number; place: (i: number, r: number, u: number, out: Float32Array) => void }) {
-  const pts = useRef<THREE.Points>(null);
-  const { seed, pos } = useMemo(() => {
-    const seed = new Float32Array(count * 2);
-    for (let i = 0; i < seed.length; i++) seed[i] = Math.random();
-    const pos = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) place(i, seed[i * 2 + 1], seed[i * 2], pos);
-    return { seed, pos };
-  }, [count, place]);
-  useFrame(({ clock }) => {
-    if (!pts.current) return;
-    const attr = pts.current.geometry.attributes.position as THREE.BufferAttribute;
-    const t = clock.elapsedTime * speed;
-    for (let i = 0; i < count; i++) place(i, seed[i * 2 + 1], (seed[i * 2] + t * (0.7 + 0.6 * seed[i * 2 + 1])) % 1, attr.array as Float32Array);
-    attr.needsUpdate = true;
-  });
-  return (
-    <points ref={pts}>
-      <bufferGeometry><bufferAttribute attach="attributes-position" args={[pos, 3]} /></bufferGeometry>
-      <pointsMaterial color={color} size={3} sizeAttenuation={false} depthWrite={false} />
-    </points>
-  );
+/** A soft pulse that peaks once per cycle; p is in cycles. */
+function pulse(p: number) {
+  const f = p - Math.floor(p);
+  const w = Math.max(0, 1 - Math.abs(f - 0.25) / 0.2);
+  return w * w * (3 - 2 * w);
 }
 
-const ease = (w: number) => w * w * (3 - 2 * w);
-
-function Box({ size, pos = [0, 0, 0], color, edge }: { size: [number, number, number]; pos?: [number, number, number]; color: string; edge?: string }) {
+function Box({ size, pos = [0, 0, 0], color, edge, material }: { size: [number, number, number]; pos?: [number, number, number]; color?: string; edge?: string; material?: THREE.Material }) {
   return (
-    <mesh position={pos}>
+    <mesh position={pos} material={material}>
       <boxGeometry args={size} />
-      <meshLambertMaterial color={color} />
+      {!material && <meshLambertMaterial color={color} />}
       {edge && <Edges color={edge} />}
     </mesh>
   );
 }
 
-/** Compute and SRAM side by side in every tile of one die. */
-const SRAM_D = 3.4, SRAM_T = 0.12, SRAM_N = 4, SRAM_PITCH = SRAM_D / SRAM_N;
-// Data hops the short way between each tile's SRAM strip and its compute, and back.
-const sramPlace = (i: number, r: number, u: number, out: Float32Array) => {
-  const tile = i % (SRAM_N * SRAM_N), N = SRAM_N, p = SRAM_PITCH;
-  const w = ease(u < 0.5 ? u * 2 : 2 - u * 2);
-  out[i * 3] = ((tile % N) - (N - 1) / 2) * p + (r - 0.5) * p * 0.55;
-  out[i * 3 + 1] = SRAM_T / 2 + 0.11;
-  out[i * 3 + 2] = (Math.floor(tile / N) - (N - 1) / 2) * p + THREE.MathUtils.lerp(p * 0.25, -p * 0.14, w);
-};
+/** One material per part, so each can glow on its own schedule. */
+function useGlowMaterials(count: number, color: string, glow: string) {
+  return useMemo(() => Array.from({ length: count }, () => new THREE.MeshLambertMaterial({ color, emissive: glow, emissiveIntensity: 0 })), [count, color, glow]);
+}
 
+/** Compute and SRAM side by side in every tile of one die; the SRAM strips glow in a slow wave. */
 function Sram() {
-  const D = SRAM_D, T = SRAM_T, N = SRAM_N, pitch = SRAM_PITCH;
+  const D = 3.4, T = 0.12, N = 4, pitch = D / N;
+  const strips = useGlowMaterials(N * N, P.sram, P.sram);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    strips.forEach((m, i) => {
+      const w = 0.5 + 0.5 * Math.sin(t * 1.1 - ((i % N) + Math.floor(i / N)) * 0.7);
+      m.emissiveIntensity = 0.5 * w * w;
+    });
+  });
   return (
     <group>
       <Box size={[D, T, D]} color={P.logic} edge={P.ink} />
@@ -71,85 +51,99 @@ function Sram() {
         return (
           <group key={i} position={[x, T / 2 + 0.03, z]}>
             <Box size={[pitch * 0.8, 0.06, pitch * 0.5]} pos={[0, 0, -pitch * 0.14]} color={P.logic} edge={P.ink} />
-            <Box size={[pitch * 0.8, 0.06, pitch * 0.2]} pos={[0, 0, pitch * 0.25]} color={P.sram} />
+            <Box size={[pitch * 0.8, 0.06, pitch * 0.2]} pos={[0, 0, pitch * 0.25]} material={strips[i]} />
           </group>
         );
       })}
-      <Motes count={32} color={P.sram} speed={0.45} place={sramPlace} />
     </group>
   );
 }
 
-/** Compute in the middle of an interposer, HBM stacks along two edges, joined only at those edges. */
-const HBM_DIE = 2.2, HBM_S = 0.62, HBM_SX = HBM_DIE / 2 + 0.42 + HBM_S / 2, HBM_Z = [-0.74, 0, 0.74];
-// A thin trickle out of each stack, arcing over so it stays in view, down into the beachfront.
-const hbmPlace = (i: number, r: number, u: number, out: Float32Array) => {
-  const side = i % 2 ? 1 : -1;
-  out[i * 3] = side * THREE.MathUtils.lerp(HBM_SX, HBM_DIE / 2 + 0.05, u);
-  out[i * 3 + 1] = THREE.MathUtils.lerp(0.47, 0.1, u) + Math.sin(u * Math.PI) * 0.2;
-  out[i * 3 + 2] = HBM_Z[Math.floor(i / 2) % 3] + (r - 0.5) * 0.36;
-};
-
+/**
+ * Compute in the middle of an interposer, HBM stacks along two edges, joined only at those edges.
+ * Each stack lights layer by layer toward the board, then the beachfront flashes as the data arrives.
+ */
 function Hbm() {
-  const DIE = HBM_DIE, S = HBM_S, LAYERS = 4;
-  const sx = HBM_SX;
+  const DIE = 2.2, S = 0.62, LAYERS = 4, Z = [-0.74, 0, 0.74];
+  const sx = DIE / 2 + 0.42 + S / 2;
+  const layers = useGlowMaterials(2 * Z.length * LAYERS, P.hbmTint, P.hbm);
+  const front = useMemo(() => [0, 1].map(() => new THREE.MeshBasicMaterial({ color: P.hbm })), []);
+  const base = useMemo(() => new THREE.Color(P.hbm), []);
+  const lit = useMemo(() => new THREE.Color(P.hbm).offsetHSL(0, 0.05, 0.2), []);
+  const STEP = 0.1, SPEED = 0.42;
+  useFrame(({ clock }) => {
+    const p = clock.elapsedTime * SPEED;
+    layers.forEach((m, i) => {
+      const k = i % LAYERS, stack = Math.floor(i / LAYERS) % Z.length;
+      m.emissiveIntensity = 0.45 * pulse(p - (LAYERS - 1 - k) * STEP - stack * 0.04);
+    });
+    const arrive = pulse(p - LAYERS * STEP - 0.04);
+    front.forEach((m) => m.color.lerpColors(base, lit, arrive));
+  });
   return (
     <group>
       <Box size={[DIE + 2 * (S + 0.5), 0.08, DIE + 0.6]} pos={[0, -0.04, 0]} color={P.board} edge={P.ink3} />
       <Box size={[DIE, 0.16, DIE]} pos={[0, 0.08, 0]} color={P.logic} edge={P.ink} />
-      {[-1, 1].map((side) => (
+      {[-1, 1].map((side, si) => (
         <group key={side}>
           {/* the beachfront: the only place memory meets compute */}
-          <mesh position={[side * (DIE / 2 + 0.05), 0.09, 0]}>
+          <mesh position={[side * (DIE / 2 + 0.05), 0.09, 0]} material={front[si]}>
             <boxGeometry args={[0.08, 0.18, DIE * 0.95]} />
-            <meshBasicMaterial color={P.hbm} />
           </mesh>
-          {HBM_Z.map((z) =>
+          {Z.map((z, zi) =>
             Array.from({ length: LAYERS }, (_, k) => (
-              <Box key={`${z}-${k}`} size={[S, 0.11, S]} pos={[side * sx, 0.06 + k * 0.135, z]} color={P.hbmTint} edge={P.hbm} />
+              <Box key={`${z}-${k}`} size={[S, 0.11, S]} pos={[side * sx, 0.06 + k * 0.135, z]} material={layers[(si * Z.length + zi) * LAYERS + k]} edge={P.hbm} />
             )),
           )}
         </group>
       ))}
-      <Motes count={30} color={P.hbm} speed={0.3} place={hbmPlace} />
     </group>
   );
 }
 
-/** Compute stacked on DRAM layers, joined across the whole face by vertical I/O. */
-const DR_D = 2.6, DR_L = 0.1, DR_STEP = 0.14, DR_LAYERS = 4, DR_GAP = 0.6;
-const DR_TOP = (DR_LAYERS - 1) * DR_STEP + DR_L / 2;
-// Data rises across the whole face, from the top DRAM layer into the compute die.
-const dramPlace = (i: number, r: number, u: number, out: Float32Array) => {
-  const a = (i * 0.618034) % 1;
-  out[i * 3] = (a - 0.5) * DR_D * 0.86;
-  out[i * 3 + 1] = DR_TOP - 0.04 + u * (DR_GAP + 0.08);
-  out[i * 3 + 2] = (r - 0.5) * DR_D * 0.86;
-};
-
+/**
+ * Compute stacked on DRAM layers, joined across the whole face by vertical I/O.
+ * One dot rides up each I/O line at the same steady speed, like Fig. 0.
+ */
 function Dram3d() {
-  const D = DR_D, L = DR_L, STEP = DR_STEP, LAYERS = DR_LAYERS, GAP = DR_GAP, N = 9;
-  const top = DR_TOP;
-  const io = useMemo(() => {
-    const pts: number[] = [];
+  const D = 2.6, L = 0.1, STEP = 0.14, LAYERS = 4, GAP = 0.6, N = 9, SPEED = 0.45;
+  const top = (LAYERS - 1) * STEP + L / 2;
+  const { io, pos, phase } = useMemo(() => {
+    const line: number[] = [], pos = new Float32Array(N * N * 3), phase = new Float32Array(N * N);
     for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
       const x = (i - (N - 1) / 2) * (D * 0.86) / (N - 1), z = (j - (N - 1) / 2) * (D * 0.86) / (N - 1);
-      pts.push(x, top, z, x, top + GAP, z);
+      line.push(x, top, z, x, top + GAP, z);
+      const n = i * N + j;
+      pos.set([x, top, z], n * 3);
+      // Evenly spread start times, so the dots never bunch up.
+      phase[n] = (n * 0.618034) % 1;
     }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-    return g;
+    const io = new THREE.BufferGeometry();
+    io.setAttribute('position', new THREE.Float32BufferAttribute(line, 3));
+    return { io, pos, phase };
   }, [top]);
+  const dots = useRef<THREE.Points>(null);
+  useFrame(({ clock }) => {
+    if (!dots.current) return;
+    const attr = dots.current.geometry.attributes.position as THREE.BufferAttribute;
+    const t = clock.elapsedTime * SPEED;
+    // Start and end just inside the dies, so a dot never pops in or out in plain view.
+    for (let n = 0; n < phase.length; n++) attr.setY(n, top - 0.04 + ((phase[n] + t) % 1) * (GAP + 0.08));
+    attr.needsUpdate = true;
+  });
   return (
     <group>
       {Array.from({ length: LAYERS }, (_, k) => (
         <Box key={k} size={[D, L, D]} pos={[0, k * STEP, 0]} color={P.dramTint} edge={P.dram} />
       ))}
       <lineSegments geometry={io}>
-        <lineBasicMaterial color={P.dram} />
+        <lineBasicMaterial color={P.dram} transparent opacity={0.6} />
       </lineSegments>
+      <points ref={dots}>
+        <bufferGeometry><bufferAttribute attach="attributes-position" args={[pos, 3]} /></bufferGeometry>
+        <pointsMaterial color={P.dram} size={3} sizeAttenuation={false} depthWrite={false} />
+      </points>
       <Box size={[D, 0.16, D]} pos={[0, top + GAP + 0.08, 0]} color={P.logic} edge={P.ink} />
-      <Motes count={110} color={P.dram} speed={0.4} place={dramPlace} />
     </group>
   );
 }
