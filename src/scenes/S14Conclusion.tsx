@@ -190,7 +190,7 @@ export function S14Conclusion() {
                 ))}
               </ol>
               <p className="mt-4">The paper reports about <strong className="num">{HERO.bandwidthPerCardTBs} TB/s</strong> per card, with each bit moved between the dies for about <strong className="num">{STACKING.ioPJPerBit} pJ</strong> on early silicon.</p>
-              <p>The comparison below, from {PRESENTATION.label}, sums up where that leaves 3D-DRAM against the other two kinds of memory.</p>
+              <p>The comparison below is a summary of how 3D-DRAM compares against the other two kinds of memory.</p>
             </div>
           </div>
         </div>
