@@ -1,4 +1,4 @@
-# Raptor, explained
+# 3D-DRAM, explained
 
 An independent scrollytelling explainer of the ISCA 2026 paper
 **“Early Silicon of Raptor: The First 3D-DRAM Accelerator for Generative Inference”**
