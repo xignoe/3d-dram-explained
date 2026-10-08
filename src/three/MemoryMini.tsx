@@ -40,7 +40,7 @@ function Sram() {
     const t = clock.elapsedTime;
     strips.forEach((m, i) => {
       const w = 0.5 + 0.5 * Math.sin(t * 1.1 - ((i % N) + Math.floor(i / N)) * 0.7);
-      m.emissiveIntensity = 0.5 * w * w;
+      m.emissiveIntensity = 0.85 * w * w;
     });
   });
   return (
@@ -69,13 +69,13 @@ function Hbm() {
   const layers = useGlowMaterials(2 * Z.length * LAYERS, P.hbmTint, P.hbm);
   const front = useMemo(() => [0, 1].map(() => new THREE.MeshBasicMaterial({ color: P.hbm })), []);
   const base = useMemo(() => new THREE.Color(P.hbm), []);
-  const lit = useMemo(() => new THREE.Color(P.hbm).offsetHSL(0, 0.05, 0.2), []);
+  const lit = useMemo(() => new THREE.Color(P.hbm).offsetHSL(0, 0.1, 0.3), []);
   const STEP = 0.1, SPEED = 0.42;
   useFrame(({ clock }) => {
     const p = clock.elapsedTime * SPEED;
     layers.forEach((m, i) => {
       const k = i % LAYERS, stack = Math.floor(i / LAYERS) % Z.length;
-      m.emissiveIntensity = 0.45 * pulse(p - (LAYERS - 1 - k) * STEP - stack * 0.04);
+      m.emissiveIntensity = 0.8 * pulse(p - (LAYERS - 1 - k) * STEP - stack * 0.04);
     });
     const arrive = pulse(p - LAYERS * STEP - 0.04);
     front.forEach((m) => m.color.lerpColors(base, lit, arrive));
@@ -103,7 +103,8 @@ function Hbm() {
 
 /**
  * Compute stacked on DRAM layers, joined across the whole face by vertical I/O.
- * One dot rides up each I/O line at the same steady speed, like Fig. 0.
+ * One dot rides up each I/O line at the same steady speed, like Fig. 0,
+ * while a soft glow climbs the DRAM layers toward the compute die.
  */
 function Dram3d() {
   const D = 2.6, L = 0.1, STEP = 0.14, LAYERS = 4, GAP = 0.6, N = 9, SPEED = 0.45;
@@ -122,8 +123,11 @@ function Dram3d() {
     io.setAttribute('position', new THREE.Float32BufferAttribute(line, 3));
     return { io, pos, phase };
   }, [top]);
+  const layers = useGlowMaterials(LAYERS, P.dramTint, P.dram);
   const dots = useRef<THREE.Points>(null);
   useFrame(({ clock }) => {
+    const p = clock.elapsedTime * 0.35;
+    layers.forEach((m, k) => { m.emissiveIntensity = 0.3 * pulse(p - k * 0.08); });
     if (!dots.current) return;
     const attr = dots.current.geometry.attributes.position as THREE.BufferAttribute;
     const t = clock.elapsedTime * SPEED;
@@ -134,7 +138,7 @@ function Dram3d() {
   return (
     <group>
       {Array.from({ length: LAYERS }, (_, k) => (
-        <Box key={k} size={[D, L, D]} pos={[0, k * STEP, 0]} color={P.dramTint} edge={P.dram} />
+        <Box key={k} size={[D, L, D]} pos={[0, k * STEP, 0]} material={layers[k]} edge={P.dram} />
       ))}
       <lineSegments geometry={io}>
         <lineBasicMaterial color={P.dram} transparent opacity={0.6} />
