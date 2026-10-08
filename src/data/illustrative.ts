@@ -48,5 +48,4 @@ export const TOY = {
 
   // Scene 13: number of draft tokens drawn (the paper calls it K)
   draftTokensShown: 4,
-  pairingBeatMs: 900, // pace of the build-up animation in Scene 13
 } as const;

@@ -1,6 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
 import { Scene, type SceneState } from '../components/Scene';
-import { useTicker } from '../lib/hooks';
 import { PAIRINGS } from '../data/paper';
 import { TOY } from '../data/illustrative';
 import { P } from '../lib/palette';
@@ -98,17 +96,15 @@ function Spec({ phase }: { phase: number }) {
   );
 }
 
-/** Beats per cycle: each pairing builds up one part at a time, holds, then starts again. */
-const AFD_BEATS = 4, HOLD_BEATS = 3;
+/** Parts each pairing reveals, one after another, as the reader scrolls through its step. */
+const AFD_PARTS = 4;
+/** The build finishes this far through the step, so it is complete while the text is still being read. */
+const BUILD_BY = 0.7;
 
-function Visual({ step, inView, reduced }: SceneState) {
-  const beats = step === 0 ? AFD_BEATS : TOY.draftTokensShown + 1;
-  const [beat, setBeat] = useState(0);
-  // Start from the beginning whenever the figure arrives or the pairing changes.
-  useEffect(() => setBeat(0), [step, inView]);
-  const tick = useCallback(() => setBeat((b) => (b + 1) % (beats + HOLD_BEATS)), [beats]);
-  useTicker(inView && !reduced, TOY.pairingBeatMs, tick);
-  const phase = reduced ? beats : Math.min(beat, beats);
+function Visual({ step, progress, reduced }: SceneState) {
+  const parts = step === 0 ? AFD_PARTS : TOY.draftTokensShown + 1;
+  // The first part is lit as soon as the figure arrives; the rest light up with scroll and stay lit.
+  const phase = reduced ? parts : Math.min(parts - 1, Math.floor((progress / BUILD_BY) * parts));
   return (
     <div className="flex h-full flex-col justify-center-safe">
       <div className="font-serif text-xl italic">{step === 0 ? 'Pairing one: the attention–FFN split' : 'Pairing two: speculative decoding'}</div>
