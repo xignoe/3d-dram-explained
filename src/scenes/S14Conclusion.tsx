@@ -217,7 +217,7 @@ export function S14Conclusion() {
         </figure>
 
         <div className="mt-12 max-w-[38rem]">
-          <Chef>To close the kitchen picture: SRAM is the countertop, with everything within reach but little room. HBM is the big pantry down the hall, with plenty of space but a long walk through a single door. 3D-DRAM is a fridge built in under the countertop, with more room than the counter and every ingredient one reach away. It still holds less than the pantry, so the best kitchen may use both: the pantry for whatever takes up the most room, and the fridge under the counter for whatever has to arrive fastest.</Chef>
+          <Chef>SRAM is the countertop, with everything within reach but little room. HBM is the big pantry down the hall, with plenty of space but a long walk through a single door. 3D-DRAM is a fridge built in under the countertop, with more room than the counter and every ingredient one reach away. It still holds less than the pantry, so the best kitchen may use both: the pantry for whatever takes up the most room, and the fridge under the counter for whatever has to arrive fastest.</Chef>
         </div>
       </div>
     </section>
