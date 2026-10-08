@@ -222,7 +222,7 @@ export function S07StreamFlipping() {
         ? { caption: <>The I/O power a Raptor card would draw at full bandwidth without any countermeasure. Source: Sec IV-D.</> }
         : s.step >= 3
           ? { evidence: 'measured', caption: <>Measured I/O energy at {SF.measuredAtMHz} MHz with {SF.banksAtResult} active banks, every wire switching versus with stream flipping. Source: Sec V-A, Fig. 10.</> }
-          : { caption: <>An illustration rather than data. Each row is one chunk, drawn with fewer wires than the real {fmt(SF.chunkBits)}. Orange cells are wires that changed value, and when flipping is on, a filled flag marks chunks stored inverted.</> }}
+          : { caption: <>Each row is one chunk, drawn with fewer wires than the real {fmt(SF.chunkBits)}. Orange cells are wires that changed value, and when flipping is on, a filled flag marks chunks stored inverted.</> }}
     />
   );
 }

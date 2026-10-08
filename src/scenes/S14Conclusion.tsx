@@ -158,7 +158,7 @@ function EnergyLadder() {
         })}
       </svg>
       <p className="sans mt-3 text-[0.8rem] leading-relaxed text-muted">
-        Raptor’s measured I/O lands well below HBM, about <span className="num font-semibold text-dram3d">{STACKING.vsHBM3EnergyX}×</span> less than reported figures for HBM3 by the paper’s own comparison: a millimetre-scale vertical path with no <Term k="phy">PHY</Term>, instead of a centimetre-scale interposer trace plus a PHY. Open circles are per millimetre travelled.
+        By the paper’s measurement, Raptor’s I/O uses about <span className="num font-semibold text-dram3d">{STACKING.vsHBM3EnergyX}×</span> less energy than reported figures for HBM3. Its data travels a millimetre-scale vertical path with no <Term k="phy">PHY</Term>, instead of a centimetre-scale interposer trace plus a PHY. Open circles are per millimetre travelled.
       </p>
     </div>
   );

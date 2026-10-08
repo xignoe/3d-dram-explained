@@ -140,7 +140,7 @@ export function S01PrefillDecode() {
         <p key="c">The second job, decode, can’t be parallelized in the same way, because each new token depends on the ones before it. To produce a token, the chip reads the model’s weights and the stored state of the conversation from memory, and then it does the same again for the next token, and the one after that.</p>,
         <>
           <p key="d">That stored state is the <Term k="kv">KV cache</Term>, and it grows as the conversation gets longer. The arithmetic for each token takes very little time; most of the time goes to waiting for data. The paper begins from this observation, describing generative inference as “largely memory-bound.”</p>
-          <Chef>In the kitchen analogy, each token is one dish. The chef prepares it almost immediately, then goes back to fetch the ingredients for the next one.</Chef>
+          <Chef>Each token is one dish. The chef prepares it almost immediately, then goes back to fetch the ingredients for the next one.</Chef>
         </>,
       ]}
       description={(s) =>

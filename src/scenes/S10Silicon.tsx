@@ -84,10 +84,10 @@ export function S10Silicon() {
       kicker="Measured on silicon"
       title="Testing on real chips"
       steps={[
-        <p key="0">Up to here, this page has described the design: how Raptor is meant to work, and what it should achieve in principle. The figures in this section are different. They were <strong>measured</strong> on early Raptor chips. At the {S.designMHz} MHz design target, a chunk arrived in about <strong className="num">{S.flitLatencyNs} ns</strong> on average, and a card moved about <strong className="num">{S.bandwidthPerCardTBs} TB/s</strong>, in line with the roughly {HERO.bandwidthPerCardTBs} TB/s the rest of the page has been using.</p>,
+        <p key="0">Everything so far has described the design. The figures in this section were <strong>measured</strong> on early Raptor chips. At the {S.designMHz} MHz design target, a chunk arrived in about <strong className="num">{S.flitLatencyNs} ns</strong> on average, and a card moved about <strong className="num">{S.bandwidthPerCardTBs} TB/s</strong>, close to the paper’s headline figure of {HERO.bandwidthPerCardTBs} TB/s.</p>,
         <p key="1">The team also varied the DRAM clock between {S.freqMinMHz} MHz and {S.freqMaxMHz / 1000} GHz. A faster clock raised bandwidth and lowered latency, as expected.</p>,
         <>
-          <p key="2">Stream blocking contributes to these results. Each row of a bank holds several chunks, so the cost of opening a row is shared among all the chunks that are read from it. Measured on real chips, the ideas from earlier sections hold up.</p>
+          <p key="2">Stream blocking contributes to these results. Each row of a bank holds several chunks, so the cost of opening a row is shared among all the chunks that are read from it.</p>
           <Note>Elsewhere this page uses the paper’s headline figure of {HERO.bandwidthPerCardTBs} TB/s, which the paper quotes for operation with refresh and error scrubbing running (Sec VII-A). The {S.bandwidthPerCardTBs} TB/s here is the measurement shown in its Fig. 9.</Note>
         </>,
       ]}
