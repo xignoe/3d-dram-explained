@@ -1,6 +1,6 @@
 import { scaleLog } from 'd3-scale';
 import { Scene, type SceneState } from '../components/Scene';
-import { Chef, MEM_COLOR, Note, Term } from '../components/ui';
+import { Chef, MEM_COLOR, Term } from '../components/ui';
 import { P } from '../lib/palette';
 import { KV_INTRO, MEMORY, XPU_PFLOPS, fullMemoryReadsPerSecond, type MemoryId } from '../data/paper';
 import { fmt } from '../lib/fmt';
@@ -131,10 +131,7 @@ export function S03Pantry() {
           <p key="c"><strong style={{ color: MEM_COLOR.dram3d }}>Raptor’s 3D-DRAM</strong> sits directly underneath the processor and provides <strong className="num">{dram3d.bandwidthTBs} TB/s</strong> and <strong className="num">{dram3d.capacityGB} GB</strong> per card. It is neither the fastest nor the largest of the three, but it comes much closer to offering both.</p>
           <Chef>3D-DRAM is a fridge built in under the countertop, with a drawer at every workstation. It holds more than the countertop and less than the pantry, and everything in it is one reach away.</Chef>
         </>,
-        <>
-          <p key="d">One way to compare them is to divide <Term k="bandwidth">bandwidth</Term> by <Term k="capacity">capacity</Term>. The result is the number of times per second a card could read through all of its memory, which is roughly the kind of work that decoding asks for.</p>
-          <Note>This calculation is ours rather than the paper’s. In the paper’s comparison, all three memories are paired with the same {XPU_PFLOPS} PFLOPS compute logic.</Note>
-        </>,
+        <p key="d">One way to compare them is to divide <Term k="bandwidth">bandwidth</Term> by <Term k="capacity">capacity</Term>. The result is the number of times per second a card could read through all of its memory, which is roughly the kind of work that decoding asks for.</p>,
       ]}
       description={(s) =>
         s.step < 3

@@ -182,7 +182,7 @@ export function S04Stacking() {
         <p key="b">Raptor stacks the two instead. Its logic die, made on TSMC’s {STACKING.logicProcess.replace('TSMC ', '')} process, is bonded face to face with a DRAM die, so the memory sits directly beneath the circuits that use it.</p>,
         <>
           <p key="c">The connection between memory and logic now covers the whole area of the die instead of a strip along one edge. A dense array of microscopic solder bumps, called <Term k="ubump">µbumps</Term>, joins the two dies, and each bump carries one bit per clock cycle.</p>
-          <Chef>The ingredients now sit in a fridge right under the countertop. Every station has its own drawer, so the chef no longer walks to the pantry.</Chef>
+          <Chef>The ingredients now sit in a fridge right under the countertop. Every station has its own drawer, so the chef no longer has to walk all the way to the pantry.</Chef>
         </>,
         <>
           <p key="d">The bumps are <strong className="num">{STACKING.microbumpPitchUm} µm</strong> apart. Because each connection is so short, moving a bit costs about <strong className="num">{STACKING.ioPJPerBit} pJ</strong>, which the paper puts at roughly {STACKING.vsHBM3EnergyX}× less than reported figures for HBM3.</p>
@@ -197,7 +197,7 @@ export function S04Stacking() {
       }
       visual={(s) => <Visual {...s} />}
       figure={(s) => s.step < 3
-        ? { caption: <>Two ways of connecting memory to a processor. When the memory sits beside the processor, data crosses one narrow edge; when the two dies are stacked face to face, data crosses the whole die. Schematic and not to scale; on small screens the figure is drawn as cross-sections using the layer names from the paper’s Sec IV-B and Fig. 1b.</> }
+        ? { caption: <>Two ways of connecting memory to a processor. When the memory sits beside the processor, data crosses one narrow edge; when the two dies are stacked face to face, data crosses the whole die. Schematic and not to scale.</> }
         : { evidence: 'measured', caption: <>The energy per bit (■) was measured on Raptor silicon. The bump pitch is a design figure, and the HBM3 comparison is against reported values. Source: Sec IV-B, Sec IV-D.</> }}
     />
   );

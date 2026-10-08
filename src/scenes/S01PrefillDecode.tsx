@@ -152,7 +152,7 @@ export function S01PrefillDecode() {
       figure={(s) => ({
         caption: s.step < 2
           ? <>During prefill, all of the prompt’s tokens are processed together in a single pass.</>
-          : <>During decode, each new token needs its own trip to memory, and the KV cache grows with every token. This is an illustration, not a measurement.</>,
+          : <>During decode, each new token needs its own trip to memory, and the KV cache grows with every token.</>,
       })}
     />
   );

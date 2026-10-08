@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Scene, type SceneState } from '../components/Scene';
-import { Term, Note } from '../components/ui';
+import { Term } from '../components/ui';
 import {
   KV_INTRO, KV_BATCH, KV_SLIDERS, KV_BATCH_INFERRED_CONTEXT, kvCacheGB, kvContextSteps, contextLabel,
 } from '../data/paper';
@@ -135,10 +135,7 @@ export function S02KVCache() {
       steps={[
         <p key="a">For each token in a conversation, the model keeps some intermediate results that it will need again later. Together these make up the <Term k="kv">KV cache</Term>. In the paper’s example, a {KV_INTRO.modelLabel} model with {KV_INTRO.precisionLabel} storage, the cache grows by about <strong className="num">{KV_INTRO.mbPerTokenPerUser} MB</strong> per token for each user.</p>,
         <p key="b">That is a small amount per token, but conversations can be long. One user at {a[0].label} tokens needs about <strong className="num">{a[0].gb} GB</strong>, at {a[1].label} about <strong className="num">{a[1].gb} GB</strong>, and at {a[2].label} about <strong className="num">{a[2].gb} GB</strong>.</p>,
-        <>
-          <p key="c">A server also handles many conversations at the same time, and each has its own cache. The paper gives an example that grows from about <strong className="num">{KV_BATCH.batch1GB} GB</strong> for a single user to <strong className="num">{KV_BATCH.batch32GB} GB</strong> for {KV_BATCH.batchHigh} users, far more than the <strong className="num">{KV_INTRO.weightsGB} GB</strong> taken up by the model’s weights.</p>
-          <Note>The paper doesn’t say which context length this example assumes. The numbers match {contextLabel(KV_BATCH_INFERRED_CONTEXT)} tokens exactly, so the figure uses that value, but this is our inference.</Note>
-        </>,
+        <p key="c">A server also handles many conversations at the same time, and each has its own cache. The paper gives an example that grows from about <strong className="num">{KV_BATCH.batch1GB} GB</strong> for a single user to <strong className="num">{KV_BATCH.batch32GB} GB</strong> for {KV_BATCH.batchHigh} users, far more than the <strong className="num">{KV_INTRO.weightsGB} GB</strong> taken up by the model’s weights.</p>,
         <p key="d">You can change both values in the figure. All of this data has to be read again for every new token, which is why both the amount of memory and its speed matter.</p>,
       ]}
       description={() =>
@@ -147,7 +144,7 @@ export function S02KVCache() {
       visual={(s) => <Visual {...s} />}
       figure={() => ({
         evidence: 'derived',
-        caption: <>Block areas are drawn to scale, with one cell per user. KV cache size ≈ {KV_INTRO.mbPerTokenPerUser} MB × tokens × users, for the paper’s {KV_INTRO.modelLabel} example with {KV_INTRO.precisionLabel} storage ({KV_INTRO.layers} layers, {KV_INTRO.kvHeads} KV heads, head size {KV_INTRO.headDim}). A note appears when the values match ones the paper states. Source: Sec I, Sec III-B.</>,
+        caption: <>Block areas are drawn to scale, with one cell per user. KV cache size ≈ {KV_INTRO.mbPerTokenPerUser} MB × tokens × users, for the paper’s {KV_INTRO.modelLabel} example with {KV_INTRO.precisionLabel} storage ({KV_INTRO.layers} layers, {KV_INTRO.kvHeads} KV heads, head size {KV_INTRO.headDim}). Source: Sec I, Sec III-B.</>,
       })}
     />
   );
